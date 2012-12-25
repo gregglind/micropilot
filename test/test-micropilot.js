@@ -83,6 +83,7 @@ exports['test data gets all data'] = function(assert, done){
 };
 
 
+/* Tests for Fuse */
 exports['test Fuse with intervals runs many times'] = function(assert,done){
 	let counter = 0;
 	let counterfn = function(){
