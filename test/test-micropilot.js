@@ -4,13 +4,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+
+const { defer, promised, resolve } = require('api-utils/promise');
 let uuid = require('sdk/util/uuid').uuid;
 let uu = exports.uu = function(){
         return uuid().number.slice(1,-1)
 };
 const observer = require("observer-service");
 
-let {Micropilot,Fuse} = require('micropilot');
+let {Micropilot,Fuse,EventStore} = require('micropilot');
 
 let good = function(assert,done){
 	return function(){
@@ -25,6 +27,25 @@ let bad = function(assert,done,msg){
 		done();
 	}
 };
+
+/* EventStore */
+
+exports['test EventStore add getall'] = function(assert,done){
+  let idb = EventStore('someid');
+  group = promised(Array); // then(after all resolve, any order)
+  group(idb.add({a:1}), idb.add({b:2}),idb.add({c:3})).then(function(){
+    idb.getAll().then(
+      function(data){
+        // [{"a":1,"eventstoreid":1},
+        // {"b":2,"eventstoreid":2},
+        // {"c":3,"eventstoreid":3}]
+        assert.equal(data.length,3)
+        done();
+      }
+    )
+  })
+}
+
 
 /* micropilot */
 
