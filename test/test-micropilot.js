@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+"use strict";
 
 const { defer, promised, resolve } = require('api-utils/promise');
 let uuid = require('sdk/util/uuid').uuid;
@@ -32,12 +33,12 @@ let bad = function(assert,done,msg){
 
 exports['test EventStore add getall'] = function(assert,done){
   let idb = EventStore('someid');
-  group = promised(Array); // then(after all resolve, any order)
+  let group = promised(Array); // then(after all resolve, any order)
   group(idb.add({a:1}), idb.add({b:2}),idb.add({c:3})).then(function(){
     idb.getAll().then(
       function(data){
         // [{"a":1,"eventstoreid":1},
-        // {"b":2,"eventstoreid":2},
+      // {"b":2,"eventstoreid":2},
         // {"c":3,"eventstoreid":3}]
         assert.equal(data.length,3)
         done();
@@ -51,7 +52,6 @@ exports['test EventStore add getall'] = function(assert,done){
 
 exports['test empty unwatch clears all topics'] = function(assert){
 	let mtp = Micropilot(uu()).watch(['a','b']);
-	console.log(Object.keys(mtp._watched));
 	assert.deepEqual(Object.keys(mtp._watched).sort(),['a','b']);
 	mtp.unwatch();
 	assert.deepEqual(Object.keys(mtp._watched),[]);
@@ -66,7 +66,7 @@ exports['test mtp watches a channel (replaced _watchfn)'] = function(assert,done
 
 exports['test mtp watches multiple channels (replaced _watchfn)'] = function(assert,done){
 	let mtp = Micropilot(uu());
-	seen = 0;
+	let seen = 0;
 	mtp._watchfn = function(subject){
 		seen++;
 		if (seen == Object.keys(mtp._watched).length) {
@@ -77,7 +77,7 @@ exports['test mtp watches multiple channels (replaced _watchfn)'] = function(ass
 	assert.deepEqual(Object.keys(mtp._watched).sort(),['cat','kitten']);
 	mtp.watch(['dog']);
 	assert.deepEqual(Object.keys(mtp._watched).sort(),['cat','dog','kitten']);
-	mtp.run()
+	mtp.run();
 	observer.notify('kitten',{});
 	observer.notify('cat',{});
 	observer.notify('dog',{}); // seen all 3, should done!
@@ -91,18 +91,18 @@ exports['test micropilot record works'] = function(assert,done){
 */
 exports['test data gets all data'] = function(assert, done){
   let mtp = Micropilot(uu());
-	mtp.record('a').record('b').record('c'); // this api might change
-	mtp.data().then(function(data){
-		if (data.length == 3){
-			assert.pass();
-			done();
-		} else {
-			assert.fail("Data length != 3");
-			done();
-		}
-	})
+  let group = promised(Array);
+  let check = function(){ mtp.data().then(function(data){
+    if (data.length == 3){
+      assert.pass();
+      done();
+    } else {
+      assert.fail("Data length != 3");
+      done();
+    }
+  })};
+	group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check); // this api might change
 };
-
 
 /* Tests for Fuse */
 exports['test Fuse with intervals runs many times'] = function(assert,done){
