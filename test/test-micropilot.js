@@ -67,10 +67,20 @@ exports['test mtp watches multiple channels (replaced _watchfn)'] = function(ass
 exports['test micropilot record works'] = function(assert,done){
 	bad(assert,done,"unfinished")
 };
-
-exports['test getall data gets all data'] = function(assert, done){
-	bad(assert,done,"unfinished")
-};*/
+*/
+exports['test data gets all data'] = function(assert, done){
+  let mtp = Micropilot(uu());
+	mtp.record('a').record('b').record('c'); // this api might change
+	mtp.data().then(function(data){
+		if (data.length == 3){
+			assert.pass();
+			done();
+		} else {
+			assert.fail("Data length != 3");
+			done();
+		}
+	})
+};
 
 
 exports['test Fuse with intervals runs many times'] = function(assert,done){
