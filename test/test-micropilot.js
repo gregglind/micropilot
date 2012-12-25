@@ -13,7 +13,7 @@ let uu = exports.uu = function(){
 };
 const observer = require("observer-service");
 
-let {Micropilot,Fuse,EventStore} = require('micropilot');
+let {Micropilot,Fuse,EventStore,snoop} = require('micropilot');
 
 let good = function(assert,done){
 	return function(){
@@ -103,6 +103,21 @@ exports['test data gets all data'] = function(assert, done){
   })};
 	group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check); // this api might change
 };
+
+exports['test upload'] = function(assert,done){
+  let mtp = Micropilot(uu());
+  let group = promised(Array);
+  group(mtp.record({abc:1}), mtp.record({abc:2})).then(function(){
+    mtp.upload('http://some/false/url').then(good(assert,done))
+  })
+}
+
+/* snoop */
+
+exports['test snoop does something'] = function(assert){
+  assert.ok(JSON.stringify(snoop()));
+  // maybe assert has right keys?
+}
 
 /* Tests for Fuse */
 exports['test Fuse with intervals runs many times'] = function(assert,done){

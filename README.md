@@ -96,6 +96,17 @@ How can I notify people on start / stop / comletion / upload?
 * Write your own
 * use Test Pilot 2, or similar.
 
+How do uploads work?
+
+* snoops some user data, and all recorded events
+* to `url`.  returns promise on response.
+* for now, it's up to you to check that response, url and otherwise check that you are happy with it.
+
+  let micro = require('micropilot');
+  let studyname = 'mystudy';
+  micro.Micropilot(studyname).upload(micro.UPLOAD_URL + studyname).then(
+    function(response){ /* check response, retry using Fuse, etc. */ })
+
 My `startdate` is wrong
 
   ```
