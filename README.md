@@ -6,7 +6,7 @@ Flavor your addon with a one-file event observation and recording platform.
 Example
 ----------
 
-`require("micropilot").Micropilot('mystudy').observe(['topic1','topic2']).
+`require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
   run(84600 * 1000 /*1 day*/).then(
     function(mtp){ mtp.upload(url); mtp.stop() })`
 
