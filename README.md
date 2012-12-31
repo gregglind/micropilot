@@ -152,7 +152,7 @@ Remove all topics
 
 Just record some event without setting up a channel:
 
-  ```yourstudy.record(data)```
+  `yourstudy.record(data)`
 
 See all recording events in the console.
 
