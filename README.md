@@ -6,9 +6,11 @@ Flavor your addon with a one-file event observation and recording platform.
 Example
 ----------
 
-`require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
+```
+require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
   run(84600 * 1000 /*1 day*/).then(
-    function(mtp){ mtp.upload(url); mtp.stop() })`
+    function(mtp){ mtp.upload(url); mtp.stop() })
+```
 
 Longer, Annotated Example, Demoing Api
 -----------------------------------------
@@ -126,8 +128,10 @@ Wait before running / delay startup?
 
 * do it yourself... using `setTimeout` or `Fuse` like:
 
+```
 	Fuse({start: Date.now(),duration:1000 /* 1 sec */}).then(
 	 function(){Micropilot('mystudy').run()} )
+```
 
 Stop recording (messages arrive but aren't recorded)
 
@@ -137,8 +141,10 @@ Stop recording (messages arrive but aren't recorded)
 
 Add more topics (channels), or remove them:
 
+```
   yourstudy.watch(more_topics_list)
   yourstudy.unwatch(topics_list)
+```
 
 Remove all topics
 
@@ -146,7 +152,7 @@ Remove all topics
 
 Just record some event without setting up a channel:
 
-  `yourstudy.record(data)`
+  ```yourstudy.record(data)```
 
 See all recording events in the console.
 
@@ -154,7 +160,7 @@ See all recording events in the console.
 
 Stop the callback in `run().then()`... (unlight the Fuse!)
 
-  `yourstudy.stop();`
+  ```yourstudy.stop();```
 
 Fusssing with internals:
 
@@ -201,11 +207,11 @@ How do uploads work?
 
 My `startdate` is wrong
 
-  ```
+```
   // will stop the study run callback, if it exists
   mystudy.startdate = whenever  // setter
   mystudy.run(newduration).then(callback)
-  ```
+```
 
 Event Entry Order is Wrong / Some got lost
 
