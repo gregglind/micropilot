@@ -115,6 +115,12 @@ My `startdate` is wrong
   mystudy.run(newduration).then(callback)
   ```
 
+Event Entry Order is Wrong / Some got lost
+
+* Events are written asynchronously.  Order is not guaranteed.
+* During catastrophic Firefox crash, some events may not be written.
+
+
 I Want a Pony
 
 * Ponies are scheduled for Version 2.
