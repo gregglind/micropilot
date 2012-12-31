@@ -101,7 +101,30 @@ exports['test data gets all data'] = function(assert, done){
       done();
     }
   })};
-	group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check); // this api might change
+	group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check);
+};
+
+
+/**
+ * Call the underlying data store clear function
+ * An empty db might hang around somewhere, but with 0 rows.
+ */
+exports['test clear clears data'] = function(assert, done){
+  let mtp = Micropilot(uu());
+  let group = promised(Array);
+  let check = function(){ mtp.clear().then(function(result){
+    mtp.data().then(function(data){
+      if (data.length == 0){
+        assert.pass();
+        done();
+      } else {
+        assert.fail("Not all data cleared");
+        done();
+      }
+    })
+
+  })};
+  group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check);
 };
 
 exports['test upload'] = function(assert,done){
