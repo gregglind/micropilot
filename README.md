@@ -12,6 +12,11 @@ require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
     function(mtp){ mtp.upload(url); mtp.stop() })
 ```
 
+Api
+----
+
+See `micropilot.html` in this directory.
+
 Longer, Annotated Example, Demoing Api
 -----------------------------------------
 
@@ -107,18 +112,13 @@ Longer, Annotated Example, Demoing Api
 FAQ
 -----
 
-Why have a `studyid`?
+What are events?
 
-* used as `IndexedDb` collection name.
-* used for the 'start time' persistent storage key, to persist between runs.
+* any jsonable (as claimed by `JSON.stringify`) object.
 
 Timestamps on events?
 
 * you need to timestamp your own events!
-
-What are events?
-
-* any jsonable (as claimed by `JSON.stringify`) object.
 
 Run indefinitely...
 
@@ -161,6 +161,11 @@ See all recording events in the console.
 Stop the callback in `run().then()`... (unlight the Fuse!)
 
   `yourstudy.stop();`
+
+Why have a `studyid`?
+
+* used as `IndexedDb` collection name.
+* used for the 'start time' persistent storage key, to persist between runs.
 
 Fusssing with internals:
 
@@ -239,7 +244,6 @@ Other Gory Details and Sharp Edges:
 -------------------------------------
 
 Study `run(duration).then(callback)` is a `setTimout` based on `Date.now()`, `startdate` and the `duration`.  If you want a more sophisticated timing loop, use a `Fuse` or write your own.
-
 
 
 Authors
