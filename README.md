@@ -124,13 +124,24 @@ Run indefinitely...
 
    `micropilot('yourid').run()  // will never resolve.`
 
-Wait before running / delay startup?
+Wait before running / delay startup (for this restart)?
 
 * do it yourself... using `setTimeout` or `Fuse` like:
 
 ```
 	Fuse({start: Date.now(),duration:1000 /* 1 sec */}).then(
 	 function(){Micropilot('mystudy').run()} )
+```
+
+Wait before running / delay startup (over restarts)?
+
+* do it yourself... using `setTimeout` or `Fuse` like:
+
+```
+  let {storage} = require("simple-storage");
+  if (! storage.firststart) ss.firststart = Date.now(); // tied to addon
+  Fuse({start: storeage.firststart,duration:86400 * 7 * 1000 /* 7 days */}).then(
+   function(){ Micropilot('delayedstudy').run()} )
 ```
 
 Stop recording (messages arrive but aren't recorded)
