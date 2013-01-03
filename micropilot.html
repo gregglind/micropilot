@@ -1,6 +1,6 @@
 <head>
   <script>
-    var raw = [{"name":"main","methods":[{"id":"0-1357170688225","description":{"full":"<p>Example Usage for module:</p>\n\n<p><div class=\"highlight\"><pre lang=\"\"> require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){<br />    mtp.upload(url); mtp.stop() })<br /> </pre></div></p>","summary":"<p>Example Usage for module:</p>","body":"<p><div class=\"highlight\"><pre lang=\"\"> require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){<br />    mtp.upload(url); mtp.stop() })<br /> </pre></div></p>"},"full_description":"<p>Example Usage for module:</p>\n\n<p><div class=\"highlight\"><pre lang=\"\"> require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){     mtp.upload(url); mtp.stop() })  </pre></div></p>","params":[],"has_params":false,"tags":[],"module":false,"has_related":false},{"id":"1-1357170688226","name":"uu","signiture":"uu","type":"declaration","ctx":{"type":"declaration","name":"uu","value":"exports.uu = function(){","string":"uu"},"description":{"full":"<p>Random UUID as string, without braces.</p>","summary":"<p>Random UUID as string, without braces.</p>","body":""},"full_description":"<p>Random UUID as string, without braces.</p>","code":"let uu = exports.uu = function(){\n        return uuid().number.slice(1,-1)\n};","params":[],"has_params":false,"tags":[{"type":"return","types":["string"],"description":"random uuid without braces"}],"module":false,"related":{"href":""},"has_related":true},{"id":"2-1357170688226","name":"requestError","signiture":"requestError()","type":"function","ctx":{"type":"function","name":"requestError","string":"requestError()"},"description":{"full":"<p>common generic function to handle request errors</p>\n\n<p>Console errors the error code.</p>","summary":"<p>common generic function to handle request errors</p>","body":"<p>Console errors the error code.</p>"},"full_description":"<p>common generic function to handle request errors</p>\n\n<p>Console errors the error code.</p>","code":"let requestError = function(evt) console.error(evt.target.errorCode);","params":[],"has_params":false,"tags":[],"module":false,"has_related":false},{"id":"3-1357170688226","name":"EventStore","signiture":"EventStore","type":"declaration","ctx":{"type":"declaration","name":"EventStore","value":"exports.EventStore = Class({","string":"EventStore"},"description":{"full":"<p>EventStore Constructor (Heritage)</p>","summary":"<p>EventStore Constructor (Heritage)</p>","body":""},"full_description":"<p>EventStore Constructor (Heritage)</p>","code":"let EventStore = exports.EventStore = Class({\n  initialize: function(collection,keyname){\n    this.collection = collection;\n    this.keyname = keyname || \"eventstoreid\";\n  },\n  type: \"EventStore\",","params":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"return","types":["EventStore"],"description":"instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"4-1357170688226","name":"db","type":"key","ctx":{"type":"key","name":"db"},"description":{"full":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","summary":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>","body":"<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>"},"full_description":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","code":"db: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?\n    let request = indexedDB.open(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    request.onupgradeneeded = function (event) {\n      let objectStore = request.result.createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true });\n    };\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"5-1357170688226","name":"add","type":"key","ctx":{"type":"key","name":"add"},"description":{"full":"<p>promises to add data to the autoincrementing objectStore.</p>","summary":"<p>promises to add data to the autoincrementing objectStore.</p>","body":""},"full_description":"<p>promises to add data to the autoincrementing objectStore.</p>","code":"add: function(data){\n    let that = this;\n    let {promise, resolve} = defer();\n    this.db().then(function(db){\n      let request = db.transaction([that.collection], \"readwrite\").objectStore(that.collection).add(data);\n      request.onsuccess = function (evt) {\n        let newkey = evt.target.result;\n        resolve({id: newkey, data:data});\n      };\n      request.onerror = requestError;\n    })\n    return promise\n  },","params":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"}],"has_params":true,"tags":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"},{"type":"","string":""},{"type":"Resolves","string":"on success with (`{id: newkey, data:data}`)"},{"type":"","string":""},{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"6-1357170688226","name":"getAll","type":"key","ctx":{"type":"key","name":"getAll"},"description":{"full":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>","summary":"<p>promise all data from the collection (async).</p>","body":"<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>"},"full_description":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all writes have finished.</p>","code":"getAll: function(){\n    // using getAll() doesn't seem to work, and isn't cross-platform\n    let {promise, resolve} = defer();\n    let that = this;\n    this.db().then(function(db){\n      let data = [];\n      let req = db.transaction([that.collection], \"readonly\").objectStore(that.collection).openCursor()\n      req.onsuccess = function(event) {\n        let cursor = event.target.result;\n        if (cursor) {\n          data.push(cursor.value);\n          cursor.continue();\n        }\n        else {\n          resolve(data);\n        }\n      };\n      req.onerror = requestError;\n    })\n    return promise;\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"7-1357170688226","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","summary":"<p>promise to drop the database.</p>","body":"<p>Resolves onsuccess (<code>request.result</code>)</p>"},"full_description":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","code":"clear: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    let request = indexedDB.deleteDatabase(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise;\n  }\n});","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true}]},{"id":"8-1357170688226","name":"Micropilot","signiture":"Micropilot","type":"declaration","ctx":{"type":"declaration","name":"Micropilot","value":"exports.Micropilot = Class({","string":"Micropilot"},"description":{"full":"<p>Micropilot Heritage Object</p>","summary":"<p>Micropilot Heritage Object</p>","body":""},"full_description":"<p>Micropilot Heritage Object</p>","code":"let Micropilot = exports.Micropilot = Class({","params":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Micropilot instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"9-1357170688226","name":"initialize","type":"key","ctx":{"type":"key","name":"initialize"},"description":{"full":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","summary":"<p>Initialize the Micropilot</p>","body":"<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>"},"full_description":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","code":"initialize: function(studyid){\n      // setup the indexdb\n      this.studyid = studyid;\n      this._watched = {};\n      this.eventstore = EventStore(this.studyid);\n      this._config = storage.micropilot[studyid]; // persists\n      if (this._config === undefined) {\n        this._config = {};\n        this._config.personid = uu();\n      }\n      this._startdate = this._config.startdate = Date.now(); // start now\n      this.isrunning = true; // starts running by default\n  },\n  type: 'Micropilot',","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"11-1357170688226","name":"data","type":"key","ctx":{"type":"key","name":"data"},"description":{"full":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","summary":"<p>promise of all recorded event data</p>","body":"<p>Resolve (<code>data</code>)</p>"},"full_description":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","code":"data: function() this.eventstore.getAll(),","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"12-1357170688227","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","summary":"<p>promise to clear all data (by dropping the db)</p>","body":"<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>"},"full_description":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","code":"clear: function(){\n    return this.eventstore.clear();\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"13-1357170688227","name":"record","type":"key","ctx":{"type":"key","name":"record"},"description":{"full":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","summary":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","body":""},"full_description":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>} unless record \"doesn't happen\" because of private browsing or non-running</p>","code":"record: function(data){\n    // TODO, what should these branches return?\n    if (! this.isrunning) return resolve(undefined);\n    if (pb.isActive) return resolve(undefined);  // respect private browsing\n\n    // todo, what if it's not jsonable?\n    JSON.stringify(data);\n    myprefs.logtoconsole && console.log(\"RECORDING:\", JSON.stringify(data));\n    return resolve(this.eventstore.add(data));\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"14-1357170688227","name":"run","type":"key","ctx":{"type":"key","name":"run"},"description":{"full":"<p>promise the study (setting a Fuse)</p>","summary":"<p>promise the study (setting a Fuse)</p>","body":""},"full_description":"<p>promise the study (setting a Fuse)</p>","code":"run:  function(duration){\n    this.stop();\n    this.isrunning = true; // restart!\n    let deferred = defer();\n    let that = this;\n    // iff!\n    if (duration){\n      // should this allow / mix all fuse options?\n      this.fuse = Fuse({start: this.startdate,duration:duration});\n      return this.fuse;\n    } else {\n      // no duration, so infinite, so nothing to resolve.\n    }\n    return deferred.promise;\n  },","params":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"}],"has_params":true,"tags":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"},{"type":"","string":""},{"type":"Fuse","string":"set as {start: this.startdate,duration:duration}"},{"type":"(modify","string":"startdate to 'run from some other time')"},{"type":"","string":""},{"type":"False","string":"or Undefined duration runs forever."},{"type":"","string":""},{"type":"Resolves","string":"when the study fuse resolves."},{"type":"parent","string":"Micropilot"},{"type":"","string":""},{"type":"example:","string":""},{"type":"","string":""},{"type":"","string":"`Micropilot('mystudy').run(1000).then(function(mtp){mtp.stop()})`"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"15-1357170688227","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>","summary":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>","body":"<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>"},"full_description":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or or <code>isrunning</code> -> <code>true</code>)</p>","code":"stop:  function(){\n    this.isrunning = false;\n    this.fuse !== undefined && this.fuse.stop();\n    return this;\n  },","params":[],"has_params":false,"tags":[{"type":"return","types":["micropilot"],"description":"this"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"16-1357170688227","name":"_watch","type":"key","ctx":{"type":"key","name":"_watch"},"description":{"full":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","summary":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","body":""},"full_description":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","code":"_watch: function(topic){\n    if (this._watched[topic]) return\n\n    let that = this;\n    let cb = this._watchfn || function(subject) {that.record(subject)}; // recording.\n    let o = observer.add(topic,cb); // add to global watch list\n    this._watched[topic] = cb;\n  },","params":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"17-1357170688227","name":"watch","type":"key","ctx":{"type":"key","name":"watch"},"description":{"full":"<p>add topics to watch (non-destructive)</p>","summary":"<p>add topics to watch (non-destructive)</p>","body":""},"full_description":"<p>add topics to watch (non-destructive)</p>","code":"watch: function(watch_list){\n      let that = this;\n      watch_list.forEach(function(t) that._watch(t))\n      return this;\n  },","params":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"},{"type":"return","types":["micropilot"],"description":"this"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"18-1357170688227","name":"_unwatch","type":"key","ctx":{"type":"key","name":"_unwatch"},"description":{"full":"<p>(internal) stop watching topic</p>","summary":"<p>(internal) stop watching topic</p>","body":""},"full_description":"<p>(internal) stop watching topic</p>","code":"_unwatch: function(topic){\n    let cb = this._watched[topic];\n    cb && observer.remove(topic,cb);\n    delete this._watched[topic];\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"19-1357170688227","name":"unwatch","type":"key","ctx":{"type":"key","name":"unwatch"},"description":{"full":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","summary":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","body":""},"full_description":"<p>unwatch some topics (destructive) if <code>unwatch_list</code> is undefined, unwatch all.</p>","code":"unwatch: function(unwatch_list){\n    if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);\n    let that = this;\n    unwatch_list.forEach(function(t) that._unwatch(t));\n    return this;\n  },","params":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"20-1357170688227","name":"upload","type":"key","ctx":{"type":"key","name":"upload"},"description":{"full":"<p>promise to upload the data</p>","summary":"<p>promise to upload the data</p>","body":""},"full_description":"<p>promise to upload the data</p>","code":"upload:  function(url,options){\n    // get all... is this tangled between getting and posting?\n    // attempt to post\n    options = options===undefined ? {} : options;\n    let that = this;\n    let simulate = options.simulate;\n    let { promise, resolve } = defer();\n    let uploadid = options.uploadid || uu(); // specific to the upload\n    this.data().then(function(data){\n      let payload = {events:data};\n      payload.userdata = snoop();\n      payload.ts = Date.now();\n      payload.uploadid = uploadid;\n      payload.personid = that._config.personid;\n      let R = Request({\n        url: url,\n        content: payload,\n        contentType: \"application/json\",\n        onComplete: function (response) {\n          resolve(response) }\n      });\n      if (simulate) {\n        resolve(R);\n      } else {\n        R.post();\n      }\n    });\n    return promise;\n  }\n\n});","params":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`simulate`: don't post, promise the request"},{"type":"-","string":"`uploadid`: an id for the upload"},{"type":"","string":""},{"type":"Resolves","string":""},{"type":"-","string":"if POST, after oncomplete (response)"},{"type":"-","string":"if `options.simulate` (request)"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true}]},{"id":"10-1357170688226","description":{"full":"<p>get and set the startDate</p>\n\n<p>@parent Micropilot</p>","summary":"<p>get and set the startDate</p>","body":"<p>@parent Micropilot</p>"},"full_description":"<p>get and set the startDate</p>\n\n<p>@parent Micropilot</p>","code":"get startdate() this._startdate,\n  // resetting the startdate kills existing run / fuse\n  set startdate(ts) {\n    this.stop();\n    this._startdate = ts;\n  },","params":[],"has_params":false,"tags":[],"module":false,"has_related":false},{"id":"21-1357170688227","name":"snoop","signiture":"snoop","type":"declaration","ctx":{"type":"declaration","name":"snoop","value":"exports.snoop = function(){","string":"snoop"},"description":{"full":"<p>gather general user data, including addons, os, etc.</p>\n\n<p>Properties:  appname, location, fxVersion, os, updateChannel, addons<br />Returns {object} userdata</p>","summary":"<p>gather general user data, including addons, os, etc.</p>","body":"<p>Properties:  appname, location, fxVersion, os, updateChannel, addons<br />Returns {object} userdata</p>"},"full_description":"<p>gather general user data, including addons, os, etc.</p>\n\n<p>Properties:  appname, location, fxVersion, os, updateChannel, addons Returns {object} userdata</p>","code":"let snoop = exports.snoop = function(){\n  let LOCALE_PREF = \"general.useragent.locale\";\n  let UPDATE_CHANNEL_PREF = \"app.update.channel\";\n  let xa = require(\"xul-app\");\n  let prefs = require('preferences-service');\n\n  let u = {};\n  u.appname = xa.name;\n  u.location = prefs.get(LOCALE_PREF)\n  u.fxVersion = xa.version;\n  u.os = require('runtime').os;\n  u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)\n  u.addons = [] // get this in some sync way? or move this all to async?\n  return u;\n}","params":[],"has_params":false,"tags":[],"module":false,"has_related":false},{"id":"22-1357170688228","name":"Fuse","signiture":"Fuse","type":"declaration","ctx":{"type":"declaration","name":"Fuse","value":"exports.Fuse = Class({","string":"Fuse"},"description":{"full":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>","summary":"<p>Fuse Heritage Class</p>","body":"<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>"},"full_description":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs. (Persistence achieved using <code>simple-store</code>, which ties a Fuse into a particular addon)</p>","code":"let Fuse = exports.Fuse = Class({\n  initialize: function(options){\n    let {start,duration,pulseinterval,resolve_this,pulsefn} = options;\n    if (resolve_this === undefined) resolve_this = this;\n    this.pulseinterval =  pulseinterval;\n    let that = this;\n    this.start = start;\n    this.duration = duration;\n    let { promise, resolve } = defer();\n    this.promise = promise;\n    this.resolve = resolve;\n    // should this be setInterval, or setTimeout?\n    // setInterval allows one to modify the fuse while running\n    // more easily, but setTimeout is much more precise.\n    if (pulseinterval){\n      this.timerid = timers.setInterval(function(){\n        that.checking = true;\n        if (pulsefn) {pulsefn(that)}\n        if (! duration) return;\n        if (Date.now() >= (that.start + that.duration)){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }\n        that.checking=false;\n      },pulseinterval);\n    } else {\n      // TODO, what is setTimeout on a negative?\n      that.checking=false;\n      let timerunningsofar = (Date.now() - this.start);\n      if (duration <= timerunningsofar) { // really short intervals\n        this.resolve(resolve_this);\n        this.stop();\n      } else {\n        this.timerid = timers.setTimeout(function(){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }, duration - timerunningsofar);\n      }\n    }\n  },","params":[{"type":"param","types":["Object"],"name":"options","description":""}],"has_params":true,"tags":[{"type":"param","types":["Object"],"name":"options","description":""},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`start`: start time for the fuse"},{"type":"-","string":"`duration`: how long to run."},{"type":"-","string":"`pulseinterval`: if defined, use a `setInterval` timer (see below)"},{"type":"-","string":"`resolve_this`: the `this` passed into the `then` during resolution"},{"type":"-","string":"`pulsefn`: if `setInterval` timer, run this function during every `pulse`"},{"type":"","string":""},{"type":"`setInterval`","string":"vs. `setTimeout`: Fuse is normally a `setTimeout`. If you"},{"type":"want","string":"finer control over it (including being able to modify the timers of"},{"type":"running","string":"Fuses), use `pulseInterval` to make a `setInterval` timer."},{"type":"","string":""},{"type":"Note","string":"1: \"Short Fuses\": When the `duration` is very short, we don't guaranteed"},{"type":"millisecond","string":"accuracy!"},{"type":"","string":""},{"type":"Note","string":"2: Restart. If a Fuse 'should fire' while Firefox is not running,"},{"type":"it","string":"will fire the next time it can."},{"type":"","string":""},{"type":"Note","string":"3: Blast from the Past. Fuses fire IFF"},{"type":"","string":""},{"type":"","string":"`Date.now() >= (that.start + that.duration)`"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Fuse instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"24-1357170688229","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the fuse (clear the timeout).</p>","summary":"<p>stop the fuse (clear the timeout).</p>","body":""},"full_description":"<p>stop the fuse (clear the timeout).</p>","code":"stop: function(){\n    if (this.timerid) timers.clearTimeout(this.timerid);\n    return this\n  }\n});","params":[],"has_params":false,"tags":[{"type":"return","types":["fuse"],"description":"this"},{"type":"parent","string":"Fuse"}],"module":false,"parent":"Fuse","related":{"href":""},"has_related":true}]},{"id":"23-1357170688228","description":{"full":"<p>promise</p>","summary":"<p>promise</p>","body":""},"full_description":"<p>promise</p>","code":"get then() this.promise.then,\n\n  type: 'Fuse',","params":[],"has_params":false,"tags":[],"module":false,"has_related":false}]},{"id":"3-1357170688226","name":"EventStore","signiture":"EventStore","type":"declaration","ctx":{"type":"declaration","name":"EventStore","value":"exports.EventStore = Class({","string":"EventStore"},"description":{"full":"<p>EventStore Constructor (Heritage)</p>","summary":"<p>EventStore Constructor (Heritage)</p>","body":""},"full_description":"<p>EventStore Constructor (Heritage)</p>","code":"let EventStore = exports.EventStore = Class({\n  initialize: function(collection,keyname){\n    this.collection = collection;\n    this.keyname = keyname || \"eventstoreid\";\n  },\n  type: \"EventStore\",","params":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"return","types":["EventStore"],"description":"instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"4-1357170688226","name":"db","type":"key","ctx":{"type":"key","name":"db"},"description":{"full":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","summary":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>","body":"<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>"},"full_description":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","code":"db: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?\n    let request = indexedDB.open(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    request.onupgradeneeded = function (event) {\n      let objectStore = request.result.createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true });\n    };\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"5-1357170688226","name":"add","type":"key","ctx":{"type":"key","name":"add"},"description":{"full":"<p>promises to add data to the autoincrementing objectStore.</p>","summary":"<p>promises to add data to the autoincrementing objectStore.</p>","body":""},"full_description":"<p>promises to add data to the autoincrementing objectStore.</p>","code":"add: function(data){\n    let that = this;\n    let {promise, resolve} = defer();\n    this.db().then(function(db){\n      let request = db.transaction([that.collection], \"readwrite\").objectStore(that.collection).add(data);\n      request.onsuccess = function (evt) {\n        let newkey = evt.target.result;\n        resolve({id: newkey, data:data});\n      };\n      request.onerror = requestError;\n    })\n    return promise\n  },","params":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"}],"has_params":true,"tags":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"},{"type":"","string":""},{"type":"Resolves","string":"on success with (`{id: newkey, data:data}`)"},{"type":"","string":""},{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"6-1357170688226","name":"getAll","type":"key","ctx":{"type":"key","name":"getAll"},"description":{"full":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>","summary":"<p>promise all data from the collection (async).</p>","body":"<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>"},"full_description":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all writes have finished.</p>","code":"getAll: function(){\n    // using getAll() doesn't seem to work, and isn't cross-platform\n    let {promise, resolve} = defer();\n    let that = this;\n    this.db().then(function(db){\n      let data = [];\n      let req = db.transaction([that.collection], \"readonly\").objectStore(that.collection).openCursor()\n      req.onsuccess = function(event) {\n        let cursor = event.target.result;\n        if (cursor) {\n          data.push(cursor.value);\n          cursor.continue();\n        }\n        else {\n          resolve(data);\n        }\n      };\n      req.onerror = requestError;\n    })\n    return promise;\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"7-1357170688226","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","summary":"<p>promise to drop the database.</p>","body":"<p>Resolves onsuccess (<code>request.result</code>)</p>"},"full_description":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","code":"clear: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    let request = indexedDB.deleteDatabase(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise;\n  }\n});","params":[],"has_params":false,"tags":[{"type":"parent","string":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true}]},{"id":"8-1357170688226","name":"Micropilot","signiture":"Micropilot","type":"declaration","ctx":{"type":"declaration","name":"Micropilot","value":"exports.Micropilot = Class({","string":"Micropilot"},"description":{"full":"<p>Micropilot Heritage Object</p>","summary":"<p>Micropilot Heritage Object</p>","body":""},"full_description":"<p>Micropilot Heritage Object</p>","code":"let Micropilot = exports.Micropilot = Class({","params":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Micropilot instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"9-1357170688226","name":"initialize","type":"key","ctx":{"type":"key","name":"initialize"},"description":{"full":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","summary":"<p>Initialize the Micropilot</p>","body":"<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>"},"full_description":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","code":"initialize: function(studyid){\n      // setup the indexdb\n      this.studyid = studyid;\n      this._watched = {};\n      this.eventstore = EventStore(this.studyid);\n      this._config = storage.micropilot[studyid]; // persists\n      if (this._config === undefined) {\n        this._config = {};\n        this._config.personid = uu();\n      }\n      this._startdate = this._config.startdate = Date.now(); // start now\n      this.isrunning = true; // starts running by default\n  },\n  type: 'Micropilot',","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"11-1357170688226","name":"data","type":"key","ctx":{"type":"key","name":"data"},"description":{"full":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","summary":"<p>promise of all recorded event data</p>","body":"<p>Resolve (<code>data</code>)</p>"},"full_description":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","code":"data: function() this.eventstore.getAll(),","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"12-1357170688227","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","summary":"<p>promise to clear all data (by dropping the db)</p>","body":"<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>"},"full_description":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","code":"clear: function(){\n    return this.eventstore.clear();\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"13-1357170688227","name":"record","type":"key","ctx":{"type":"key","name":"record"},"description":{"full":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","summary":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","body":""},"full_description":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>} unless record \"doesn't happen\" because of private browsing or non-running</p>","code":"record: function(data){\n    // TODO, what should these branches return?\n    if (! this.isrunning) return resolve(undefined);\n    if (pb.isActive) return resolve(undefined);  // respect private browsing\n\n    // todo, what if it's not jsonable?\n    JSON.stringify(data);\n    myprefs.logtoconsole && console.log(\"RECORDING:\", JSON.stringify(data));\n    return resolve(this.eventstore.add(data));\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"14-1357170688227","name":"run","type":"key","ctx":{"type":"key","name":"run"},"description":{"full":"<p>promise the study (setting a Fuse)</p>","summary":"<p>promise the study (setting a Fuse)</p>","body":""},"full_description":"<p>promise the study (setting a Fuse)</p>","code":"run:  function(duration){\n    this.stop();\n    this.isrunning = true; // restart!\n    let deferred = defer();\n    let that = this;\n    // iff!\n    if (duration){\n      // should this allow / mix all fuse options?\n      this.fuse = Fuse({start: this.startdate,duration:duration});\n      return this.fuse;\n    } else {\n      // no duration, so infinite, so nothing to resolve.\n    }\n    return deferred.promise;\n  },","params":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"}],"has_params":true,"tags":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"},{"type":"","string":""},{"type":"Fuse","string":"set as {start: this.startdate,duration:duration}"},{"type":"(modify","string":"startdate to 'run from some other time')"},{"type":"","string":""},{"type":"False","string":"or Undefined duration runs forever."},{"type":"","string":""},{"type":"Resolves","string":"when the study fuse resolves."},{"type":"parent","string":"Micropilot"},{"type":"","string":""},{"type":"example:","string":""},{"type":"","string":""},{"type":"","string":"`Micropilot('mystudy').run(1000).then(function(mtp){mtp.stop()})`"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"15-1357170688227","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>","summary":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>","body":"<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>"},"full_description":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or or <code>isrunning</code> -> <code>true</code>)</p>","code":"stop:  function(){\n    this.isrunning = false;\n    this.fuse !== undefined && this.fuse.stop();\n    return this;\n  },","params":[],"has_params":false,"tags":[{"type":"return","types":["micropilot"],"description":"this"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"16-1357170688227","name":"_watch","type":"key","ctx":{"type":"key","name":"_watch"},"description":{"full":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","summary":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","body":""},"full_description":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","code":"_watch: function(topic){\n    if (this._watched[topic]) return\n\n    let that = this;\n    let cb = this._watchfn || function(subject) {that.record(subject)}; // recording.\n    let o = observer.add(topic,cb); // add to global watch list\n    this._watched[topic] = cb;\n  },","params":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"17-1357170688227","name":"watch","type":"key","ctx":{"type":"key","name":"watch"},"description":{"full":"<p>add topics to watch (non-destructive)</p>","summary":"<p>add topics to watch (non-destructive)</p>","body":""},"full_description":"<p>add topics to watch (non-destructive)</p>","code":"watch: function(watch_list){\n      let that = this;\n      watch_list.forEach(function(t) that._watch(t))\n      return this;\n  },","params":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"},{"type":"return","types":["micropilot"],"description":"this"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"18-1357170688227","name":"_unwatch","type":"key","ctx":{"type":"key","name":"_unwatch"},"description":{"full":"<p>(internal) stop watching topic</p>","summary":"<p>(internal) stop watching topic</p>","body":""},"full_description":"<p>(internal) stop watching topic</p>","code":"_unwatch: function(topic){\n    let cb = this._watched[topic];\n    cb && observer.remove(topic,cb);\n    delete this._watched[topic];\n  },","params":[],"has_params":false,"tags":[{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"19-1357170688227","name":"unwatch","type":"key","ctx":{"type":"key","name":"unwatch"},"description":{"full":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","summary":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","body":""},"full_description":"<p>unwatch some topics (destructive) if <code>unwatch_list</code> is undefined, unwatch all.</p>","code":"unwatch: function(unwatch_list){\n    if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);\n    let that = this;\n    unwatch_list.forEach(function(t) that._unwatch(t));\n    return this;\n  },","params":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"20-1357170688227","name":"upload","type":"key","ctx":{"type":"key","name":"upload"},"description":{"full":"<p>promise to upload the data</p>","summary":"<p>promise to upload the data</p>","body":""},"full_description":"<p>promise to upload the data</p>","code":"upload:  function(url,options){\n    // get all... is this tangled between getting and posting?\n    // attempt to post\n    options = options===undefined ? {} : options;\n    let that = this;\n    let simulate = options.simulate;\n    let { promise, resolve } = defer();\n    let uploadid = options.uploadid || uu(); // specific to the upload\n    this.data().then(function(data){\n      let payload = {events:data};\n      payload.userdata = snoop();\n      payload.ts = Date.now();\n      payload.uploadid = uploadid;\n      payload.personid = that._config.personid;\n      let R = Request({\n        url: url,\n        content: payload,\n        contentType: \"application/json\",\n        onComplete: function (response) {\n          resolve(response) }\n      });\n      if (simulate) {\n        resolve(R);\n      } else {\n        R.post();\n      }\n    });\n    return promise;\n  }\n\n});","params":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`simulate`: don't post, promise the request"},{"type":"-","string":"`uploadid`: an id for the upload"},{"type":"","string":""},{"type":"Resolves","string":""},{"type":"-","string":"if POST, after oncomplete (response)"},{"type":"-","string":"if `options.simulate` (request)"},{"type":"parent","string":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true}]},{"id":"22-1357170688228","name":"Fuse","signiture":"Fuse","type":"declaration","ctx":{"type":"declaration","name":"Fuse","value":"exports.Fuse = Class({","string":"Fuse"},"description":{"full":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>","summary":"<p>Fuse Heritage Class</p>","body":"<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>"},"full_description":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs. (Persistence achieved using <code>simple-store</code>, which ties a Fuse into a particular addon)</p>","code":"let Fuse = exports.Fuse = Class({\n  initialize: function(options){\n    let {start,duration,pulseinterval,resolve_this,pulsefn} = options;\n    if (resolve_this === undefined) resolve_this = this;\n    this.pulseinterval =  pulseinterval;\n    let that = this;\n    this.start = start;\n    this.duration = duration;\n    let { promise, resolve } = defer();\n    this.promise = promise;\n    this.resolve = resolve;\n    // should this be setInterval, or setTimeout?\n    // setInterval allows one to modify the fuse while running\n    // more easily, but setTimeout is much more precise.\n    if (pulseinterval){\n      this.timerid = timers.setInterval(function(){\n        that.checking = true;\n        if (pulsefn) {pulsefn(that)}\n        if (! duration) return;\n        if (Date.now() >= (that.start + that.duration)){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }\n        that.checking=false;\n      },pulseinterval);\n    } else {\n      // TODO, what is setTimeout on a negative?\n      that.checking=false;\n      let timerunningsofar = (Date.now() - this.start);\n      if (duration <= timerunningsofar) { // really short intervals\n        this.resolve(resolve_this);\n        this.stop();\n      } else {\n        this.timerid = timers.setTimeout(function(){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }, duration - timerunningsofar);\n      }\n    }\n  },","params":[{"type":"param","types":["Object"],"name":"options","description":""}],"has_params":true,"tags":[{"type":"param","types":["Object"],"name":"options","description":""},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`start`: start time for the fuse"},{"type":"-","string":"`duration`: how long to run."},{"type":"-","string":"`pulseinterval`: if defined, use a `setInterval` timer (see below)"},{"type":"-","string":"`resolve_this`: the `this` passed into the `then` during resolution"},{"type":"-","string":"`pulsefn`: if `setInterval` timer, run this function during every `pulse`"},{"type":"","string":""},{"type":"`setInterval`","string":"vs. `setTimeout`: Fuse is normally a `setTimeout`. If you"},{"type":"want","string":"finer control over it (including being able to modify the timers of"},{"type":"running","string":"Fuses), use `pulseInterval` to make a `setInterval` timer."},{"type":"","string":""},{"type":"Note","string":"1: \"Short Fuses\": When the `duration` is very short, we don't guaranteed"},{"type":"millisecond","string":"accuracy!"},{"type":"","string":""},{"type":"Note","string":"2: Restart. If a Fuse 'should fire' while Firefox is not running,"},{"type":"it","string":"will fire the next time it can."},{"type":"","string":""},{"type":"Note","string":"3: Blast from the Past. Fuses fire IFF"},{"type":"","string":""},{"type":"","string":"`Date.now() >= (that.start + that.duration)`"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Fuse instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"24-1357170688229","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the fuse (clear the timeout).</p>","summary":"<p>stop the fuse (clear the timeout).</p>","body":""},"full_description":"<p>stop the fuse (clear the timeout).</p>","code":"stop: function(){\n    if (this.timerid) timers.clearTimeout(this.timerid);\n    return this\n  }\n});","params":[],"has_params":false,"tags":[{"type":"return","types":["fuse"],"description":"this"},{"type":"parent","string":"Fuse"}],"module":false,"parent":"Fuse","related":{"href":""},"has_related":true}]}]
+    var raw = [{"id":"0-1357237675845","name":"main","description":{"full":"<p>Example Usage for module:</p>\n\n<div class=\"highlight\"><pre lang=\"\">require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){\n   mtp.upload(url); mtp.stop() })\n</pre></div>","summary":"<p>Example Usage for module:</p>","body":"<div class=\"highlight\"><pre lang=\"\">require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){\n   mtp.upload(url); mtp.stop() })\n</pre></div>"},"full_description":"<p>Example Usage for module:</p>\n\n<div class=\"highlight\"><pre lang=\"\">require('micropilot').Micropilot(\"mystudy\").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){\n   mtp.upload(url); mtp.stop() })\n</pre></div>","params":[],"has_params":false,"tags":[{"type":"module","string":"main"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"1-1357237675846","name":"uu","signiture":"uu","type":"declaration","ctx":{"type":"declaration","name":"uu","value":"exports.uu = function(){","string":"uu"},"description":{"full":"<p>Random UUID as string, without braces.</p>","summary":"<p>Random UUID as string, without braces.</p>","body":""},"full_description":"<p>Random UUID as string, without braces.</p>","code":"let uu = exports.uu = function(){\n        return uuid().number.slice(1,-1)\n};","params":[],"has_params":false,"tags":[{"type":"return","types":["string"],"description":"random uuid without braces"},{"type":"","string":""},{"type":"memberOf","parent":"main"}],"module":false,"parent":"main","related":{"href":""},"has_related":true},{"id":"2-1357237675846","name":"requestError","signiture":"requestError()","type":"function","ctx":{"type":"function","name":"requestError","string":"requestError()"},"description":{"full":"<p>common generic function to handle request errors</p>\n\n<p>Console errors the error code.</p>","summary":"<p>common generic function to handle request errors</p>","body":"<p>Console errors the error code.</p>"},"full_description":"<p>common generic function to handle request errors</p>\n\n<p>Console errors the error code.</p>","code":"let requestError = function(evt) console.error(evt.target.errorCode);","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"main"}],"module":false,"parent":"main","related":{"href":""},"has_related":true}]},{"id":"3-1357237675846","name":"EventStore","signiture":"EventStore","type":"declaration","ctx":{"type":"declaration","name":"EventStore","value":"exports.EventStore = Class({","string":"EventStore"},"description":{"full":"<p>EventStore Constructor (Heritage)</p>","summary":"<p>EventStore Constructor (Heritage)</p>","body":""},"full_description":"<p>EventStore Constructor (Heritage)</p>","code":"let EventStore = exports.EventStore = Class({\n  initialize: function(collection,keyname){\n    this.collection = collection;\n    this.keyname = keyname || \"eventstoreid\";\n  },\n  type: \"EventStore\",","params":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"collection","description":"used in db and objectStore names."},{"type":"param","types":["string"],"name":"key","description":"autoincrement key, (default: \"eventstoreid\")"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"return","types":["EventStore"],"description":"instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"4-1357237675846","name":"db","type":"key","ctx":{"type":"key","name":"db"},"description":{"full":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","summary":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>","body":"<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>"},"full_description":"<p>promise a indexedDB connection to <code>\"micropilot-\"+this.collection</code>.</p>\n\n<p>If first connection to db, creates object store:</p>\n\n<p><code>createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }</code></p>\n\n<p>Resolves on success with (<code>request.result</code>)</p>","code":"db: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?\n    let request = indexedDB.open(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    request.onupgradeneeded = function (event) {\n      let objectStore = request.result.createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true });\n    };\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise\n  },","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"5-1357237675846","name":"add","type":"key","ctx":{"type":"key","name":"add"},"description":{"full":"<p>promises to add data to the autoincrementing objectStore.</p>","summary":"<p>promises to add data to the autoincrementing objectStore.</p>","body":""},"full_description":"<p>promises to add data to the autoincrementing objectStore.</p>","code":"add: function(data){\n    let that = this;\n    let {promise, resolve} = defer();\n    this.db().then(function(db){\n      let request = db.transaction([that.collection], \"readwrite\").objectStore(that.collection).add(data);\n      request.onsuccess = function (evt) {\n        let newkey = evt.target.result;\n        resolve({id: newkey, data:data});\n      };\n      request.onerror = requestError;\n    })\n    return promise\n  },","params":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"}],"has_params":true,"tags":[{"type":"param","types":["object"],"name":"data","description":"jsonable data"},{"type":"","string":""},{"type":"Resolves","string":"on success with (`{id: newkey, data:data}`)"},{"type":"","string":""},{"type":"memberOf","parent":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"6-1357237675846","name":"getAll","type":"key","ctx":{"type":"key","name":"getAll"},"description":{"full":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>","summary":"<p>promise all data from the collection (async).</p>","body":"<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all<br />writes have finished.</p>"},"full_description":"<p>promise all data from the collection (async).</p>\n\n<p>Resolves on success (<code>data</code>).</p>\n\n<p><em>Note</em>: non-blocking, only guarantees complete list of data if all writes have finished.</p>","code":"getAll: function(){\n    // using getAll() doesn't seem to work, and isn't cross-platform\n    let {promise, resolve} = defer();\n    let that = this;\n    this.db().then(function(db){\n      let data = [];\n      let req = db.transaction([that.collection], \"readonly\").objectStore(that.collection).openCursor()\n      req.onsuccess = function(event) {\n        let cursor = event.target.result;\n        if (cursor) {\n          data.push(cursor.value);\n          cursor.continue();\n        }\n        else {\n          resolve(data);\n        }\n      };\n      req.onerror = requestError;\n    })\n    return promise;\n  },","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true},{"id":"7-1357237675846","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","summary":"<p>promise to drop the database.</p>","body":"<p>Resolves onsuccess (<code>request.result</code>)</p>"},"full_description":"<p>promise to drop the database.</p>\n\n<p>Resolves onsuccess (<code>request.result</code>)</p>","code":"clear: function(){\n    let that = this;\n    let {promise, resolve} = defer();\n    let request = indexedDB.deleteDatabase(\"micropilot-\"+that.collection,1);\n    request.onerror = requestError;\n    // called after onupgradeneeded\n    request.onsuccess = function(event) {\n      resolve(request.result);\n    };\n    return promise;\n  }\n});","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"EventStore"}],"module":false,"parent":"EventStore","related":{"href":""},"has_related":true}]},{"id":"8-1357237675846","name":"Micropilot","signiture":"Micropilot","type":"declaration","ctx":{"type":"declaration","name":"Micropilot","value":"exports.Micropilot = Class({","string":"Micropilot"},"description":{"full":"<p>Micropilot Heritage Object</p>","summary":"<p>Micropilot Heritage Object</p>","body":""},"full_description":"<p>Micropilot Heritage Object</p>","code":"let Micropilot = exports.Micropilot = Class({","params":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"studyid","description":"unique key to id the study (used by dbs, prefs)"},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Micropilot instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"9-1357237675846","name":"initialize","type":"key","ctx":{"type":"key","name":"initialize"},"description":{"full":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","summary":"<p>Initialize the Micropilot</p>","body":"<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>"},"full_description":"<p>Initialize the Micropilot</p>\n\n<p>internals:</p>\n\n<ul>\n<li><code>_watched</code>: observed topics</li>\n<li><code>eventstore</code>: an EventStore</li>\n<li><code>_config</code>: simple-store configuration\n<ul><li><code>personid</code>:  a <code>uu()</code>  (set this if you want.)</li>\n<li><code>_startdate</code>:  now, or then (if revived)</li></ul></li>\n<li><code>isrunning</code>:  a brake on event recording</li>\n</ul>","code":"initialize: function(studyid){\n      // setup the indexdb\n      this.studyid = studyid;\n      this._watched = {};\n      this.eventstore = EventStore(this.studyid);\n      this._config = storage.micropilot[studyid]; // persists\n      if (this._config === undefined) {\n        this._config = {};\n        this._config.personid = uu();\n      }\n      this._startdate = this._config.startdate = Date.now(); // start now\n      this.isrunning = true; // starts running by default\n  },\n  type: 'Micropilot',","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"11-1357237675846","name":"data","type":"key","ctx":{"type":"key","name":"data"},"description":{"full":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","summary":"<p>promise of all recorded event data</p>","body":"<p>Resolve (<code>data</code>)</p>"},"full_description":"<p>promise of all recorded event data</p>\n\n<p>Resolve (<code>data</code>)</p>","code":"data: function() this.eventstore.getAll(),","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"12-1357237675846","name":"clear","type":"key","ctx":{"type":"key","name":"clear"},"description":{"full":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","summary":"<p>promise to clear all data (by dropping the db)</p>","body":"<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>"},"full_description":"<p>promise to clear all data (by dropping the db)</p>\n\n<p>Resolve(<code>request.response</code>) // of the dropDatabse</p>","code":"clear: function(){\n    return this.eventstore.clear();\n  },","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"13-1357237675846","name":"record","type":"key","ctx":{"type":"key","name":"record"},"description":{"full":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","summary":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>}<br />unless record \"doesn't happen\" because of private browsing or non-running</p>","body":""},"full_description":"<p>promise of <code>EventStore.add</code>, which is {id:&lt;>,data:&lt;>} unless record \"doesn't happen\" because of private browsing or non-running</p>","code":"record: function(data){\n    // TODO, what should these branches return?\n    if (! this.isrunning) return resolve(undefined);\n    if (pb.isActive) return resolve(undefined);  // respect private browsing\n\n    // todo, what if it's not jsonable?\n    JSON.stringify(data);\n    myprefs.logtoconsole && console.log(\"RECORDING:\", JSON.stringify(data));\n    return resolve(this.eventstore.add(data));\n  },","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"14-1357237675847","name":"run","type":"key","ctx":{"type":"key","name":"run"},"description":{"full":"<p>promise the study (setting a Fuse)</p>","summary":"<p>promise the study (setting a Fuse)</p>","body":""},"full_description":"<p>promise the study (setting a Fuse)</p>","code":"run:  function(duration){\n    this.stop();\n    this.isrunning = true; // restart!\n    let deferred = defer();\n    let that = this;\n    // iff!\n    if (duration){\n      // should this allow / mix all fuse options?\n      this.fuse = Fuse({start: this.startdate,duration:duration});\n      return this.fuse;\n    } else {\n      // no duration, so infinite, so nothing to resolve.\n    }\n    return deferred.promise;\n  },","params":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"}],"has_params":true,"tags":[{"type":"param","types":["integer"],"name":"duration","description":"milliseconds to run Fuse"},{"type":"","string":""},{"type":"Fuse","string":"set as {start: this.startdate,duration:duration}"},{"type":"(modify","string":"startdate to 'run from some other time')"},{"type":"","string":""},{"type":"False","string":"or Undefined duration runs forever."},{"type":"","string":""},{"type":"Resolves","string":"when the study fuse resolves."},{"type":"memberOf","parent":"Micropilot"},{"type":"","string":""},{"type":"example:","string":""},{"type":"","string":""},{"type":"","string":"`Micropilot('mystudy').run(1000).then(function(mtp){mtp.stop()})`"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"15-1357237675847","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>","summary":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>","body":"<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or<br />or <code>isrunning</code> -> <code>true</code>)</p>"},"full_description":"<p>stop the study (unset the fuse, <code>this.running</code> -> <code>false</code>)</p>\n\n<p>(after stopping, <code>record</code> will not work, unless one <code>run()</code> or or <code>isrunning</code> -> <code>true</code>)</p>","code":"stop:  function(){\n    this.isrunning = false;\n    this.fuse !== undefined && this.fuse.stop();\n    return this;\n  },","params":[],"has_params":false,"tags":[{"type":"return","types":["micropilot"],"description":"this"},{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"16-1357237675847","name":"_watch","type":"key","ctx":{"type":"key","name":"_watch"},"description":{"full":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","summary":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","body":""},"full_description":"<p>(internal) watch a topic, add to <code>observer-service</code></p>","code":"_watch: function(topic){\n    if (this._watched[topic]) return\n\n    let that = this;\n    let cb = this._watchfn || function(subject) {that.record(subject)}; // recording.\n    let o = observer.add(topic,cb); // add to global watch list\n    this._watched[topic] = cb;\n  },","params":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"topic","description":"topic to watch."},{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"17-1357237675847","name":"watch","type":"key","ctx":{"type":"key","name":"watch"},"description":{"full":"<p>add topics to watch (non-destructive)</p>","summary":"<p>add topics to watch (non-destructive)</p>","body":""},"full_description":"<p>add topics to watch (non-destructive)</p>","code":"watch: function(watch_list){\n      let that = this;\n      watch_list.forEach(function(t) that._watch(t))\n      return this;\n  },","params":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"watch_list","description":"list of topics"},{"type":"return","types":["micropilot"],"description":"this"},{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"18-1357237675847","name":"_unwatch","type":"key","ctx":{"type":"key","name":"_unwatch"},"description":{"full":"<p>(internal) stop watching topic</p>","summary":"<p>(internal) stop watching topic</p>","body":""},"full_description":"<p>(internal) stop watching topic</p>","code":"_unwatch: function(topic){\n    let cb = this._watched[topic];\n    cb && observer.remove(topic,cb);\n    delete this._watched[topic];\n  },","params":[],"has_params":false,"tags":[{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"19-1357237675847","name":"unwatch","type":"key","ctx":{"type":"key","name":"unwatch"},"description":{"full":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","summary":"<p>unwatch some topics (destructive)<br />if <code>unwatch_list</code> is undefined, unwatch all.</p>","body":""},"full_description":"<p>unwatch some topics (destructive) if <code>unwatch_list</code> is undefined, unwatch all.</p>","code":"unwatch: function(unwatch_list){\n    if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);\n    let that = this;\n    unwatch_list.forEach(function(t) that._unwatch(t));\n    return this;\n  },","params":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."}],"has_params":true,"tags":[{"type":"param","types":["array"],"name":"unwatch_list","description":"list of topics to remove. If undefined, unwatch all."},{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true},{"id":"20-1357237675847","name":"upload","type":"key","ctx":{"type":"key","name":"upload"},"description":{"full":"<p>promise to upload the data</p>","summary":"<p>promise to upload the data</p>","body":""},"full_description":"<p>promise to upload the data</p>","code":"upload:  function(url,options){\n    // get all... is this tangled between getting and posting?\n    // attempt to post\n    options = options===undefined ? {} : options;\n    let that = this;\n    let simulate = options.simulate;\n    let { promise, resolve } = defer();\n    let uploadid = options.uploadid || uu(); // specific to the upload\n    this.data().then(function(data){\n      let payload = {events:data};\n      payload.userdata = snoop();\n      payload.ts = Date.now();\n      payload.uploadid = uploadid;\n      payload.personid = that._config.personid;\n      let R = Request({\n        url: url,\n        content: payload,\n        contentType: \"application/json\",\n        onComplete: function (response) {\n          resolve(response) }\n      });\n      if (simulate) {\n        resolve(R);\n      } else {\n        R.post();\n      }\n    });\n    return promise;\n  }\n\n});","params":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."}],"has_params":true,"tags":[{"type":"param","types":["string"],"name":"url","description":"url to POST."},{"type":"param","types":["object"],"name":"options","description":"some options, below."},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`simulate`: don't post, promise the request"},{"type":"-","string":"`uploadid`: an id for the upload"},{"type":"","string":""},{"type":"Resolves","string":""},{"type":"-","string":"if POST, after oncomplete (response)"},{"type":"-","string":"if `options.simulate` (request)"},{"type":"memberOf","parent":"Micropilot"}],"module":false,"parent":"Micropilot","related":{"href":""},"has_related":true}]},{"id":"22-1357237675848","name":"Fuse","signiture":"Fuse","type":"declaration","ctx":{"type":"declaration","name":"Fuse","value":"exports.Fuse = Class({","string":"Fuse"},"description":{"full":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>","summary":"<p>Fuse Heritage Class</p>","body":"<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs.<br />(Persistence achieved using <code>simple-store</code>, which ties a Fuse into<br />a particular addon)</p>"},"full_description":"<p>Fuse Heritage Class</p>\n\n<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs. (Persistence achieved using <code>simple-store</code>, which ties a Fuse into a particular addon)</p>","code":"let Fuse = exports.Fuse = Class({\n  initialize: function(options){\n    let {start,duration,pulseinterval,resolve_this,pulsefn} = options;\n    if (resolve_this === undefined) resolve_this = this;\n    this.pulseinterval =  pulseinterval;\n    let that = this;\n    this.start = start;\n    this.duration = duration;\n    let { promise, resolve } = defer();\n    this.promise = promise;\n    this.resolve = resolve;\n    // should this be setInterval, or setTimeout?\n    // setInterval allows one to modify the fuse while running\n    // more easily, but setTimeout is much more precise.\n    if (pulseinterval){\n      this.timerid = timers.setInterval(function(){\n        that.checking = true;\n        if (pulsefn) {pulsefn(that)}\n        if (! duration) return;\n        if (Date.now() >= (that.start + that.duration)){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }\n        that.checking=false;\n      },pulseinterval);\n    } else {\n      // TODO, what is setTimeout on a negative?\n      that.checking=false;\n      let timerunningsofar = (Date.now() - this.start);\n      if (duration <= timerunningsofar) { // really short intervals\n        this.resolve(resolve_this);\n        this.stop();\n      } else {\n        this.timerid = timers.setTimeout(function(){\n          that.resolve(that.resolve_this);\n          that.stop();\n        }, duration - timerunningsofar);\n      }\n    }\n  },","params":[{"type":"param","types":["Object"],"name":"options","description":""}],"has_params":true,"tags":[{"type":"param","types":["Object"],"name":"options","description":""},{"type":"","string":""},{"type":"Options:","string":""},{"type":"-","string":"`start`: start time for the fuse"},{"type":"-","string":"`duration`: how long to run."},{"type":"-","string":"`pulseinterval`: if defined, use a `setInterval` timer (see below)"},{"type":"-","string":"`resolve_this`: the `this` passed into the `then` during resolution"},{"type":"-","string":"`pulsefn`: if `setInterval` timer, run this function during every `pulse`"},{"type":"","string":""},{"type":"`setInterval`","string":"vs. `setTimeout`: Fuse is normally a `setTimeout`. If you"},{"type":"want","string":"finer control over it (including being able to modify the timers of"},{"type":"running","string":"Fuses), use `pulseInterval` to make a `setInterval` timer."},{"type":"","string":""},{"type":"Note","string":"1: \"Short Fuses\": When the `duration` is very short, we don't guaranteed"},{"type":"millisecond","string":"accuracy!"},{"type":"","string":""},{"type":"Note","string":"2: Restart. If a Fuse 'should fire' while Firefox is not running,"},{"type":"it","string":"will fire the next time it can."},{"type":"","string":""},{"type":"Note","string":"3: Blast from the Past. Fuses fire IFF"},{"type":"","string":""},{"type":"","string":"`Date.now() >= (that.start + that.duration)`"},{"type":"","string":""},{"type":"constructor","string":""},{"type":"","string":""},{"type":"returns","string":"Fuse instance"}],"module":true,"related":{"href":""},"has_related":true,"methods":[{"id":"24-1357237675848","name":"stop","type":"key","ctx":{"type":"key","name":"stop"},"description":{"full":"<p>stop the fuse (clear the timeout).</p>","summary":"<p>stop the fuse (clear the timeout).</p>","body":""},"full_description":"<p>stop the fuse (clear the timeout).</p>","code":"stop: function(){\n    if (this.timerid) timers.clearTimeout(this.timerid);\n    return this\n  }\n});","params":[],"has_params":false,"tags":[{"type":"return","types":["fuse"],"description":"this"},{"type":"memberOf","parent":"Fuse"}],"module":false,"parent":"Fuse","related":{"href":""},"has_related":true}]}]
   </script>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
@@ -291,23 +291,9 @@ code .comment {
 
             <ul>
               
-                <li><a href='#main'>main</a></li>
+                <li><a href='#main-uu'>uu</a></li>
               
-                <li><a href='#uu'>uu</a></li>
-              
-                <li><a href='#requestError'>requestError</a></li>
-              
-                <li><a href='#EventStore'>EventStore</a></li>
-              
-                <li><a href='#Micropilot'>Micropilot</a></li>
-              
-                <li><a href='#main'>main</a></li>
-              
-                <li><a href='#snoop'>snoop</a></li>
-              
-                <li><a href='#Fuse'>Fuse</a></li>
-              
-                <li><a href='#main'>main</a></li>
+                <li><a href='#main-requestError'>requestError</a></li>
               
             </ul>
           </li>
@@ -319,13 +305,13 @@ code .comment {
 
             <ul>
               
-                <li><a href='#db'>db</a></li>
+                <li><a href='#EventStore-db'>db</a></li>
               
-                <li><a href='#add'>add</a></li>
+                <li><a href='#EventStore-add'>add</a></li>
               
-                <li><a href='#getAll'>getAll</a></li>
+                <li><a href='#EventStore-getAll'>getAll</a></li>
               
-                <li><a href='#clear'>clear</a></li>
+                <li><a href='#EventStore-clear'>clear</a></li>
               
             </ul>
           </li>
@@ -337,27 +323,27 @@ code .comment {
 
             <ul>
               
-                <li><a href='#initialize'>initialize</a></li>
+                <li><a href='#Micropilot-initialize'>initialize</a></li>
               
-                <li><a href='#data'>data</a></li>
+                <li><a href='#Micropilot-data'>data</a></li>
               
-                <li><a href='#clear'>clear</a></li>
+                <li><a href='#Micropilot-clear'>clear</a></li>
               
-                <li><a href='#record'>record</a></li>
+                <li><a href='#Micropilot-record'>record</a></li>
               
-                <li><a href='#run'>run</a></li>
+                <li><a href='#Micropilot-run'>run</a></li>
               
-                <li><a href='#stop'>stop</a></li>
+                <li><a href='#Micropilot-stop'>stop</a></li>
               
-                <li><a href='#_watch'>_watch</a></li>
+                <li><a href='#Micropilot-_watch'>_watch</a></li>
               
-                <li><a href='#watch'>watch</a></li>
+                <li><a href='#Micropilot-watch'>watch</a></li>
               
-                <li><a href='#_unwatch'>_unwatch</a></li>
+                <li><a href='#Micropilot-_unwatch'>_unwatch</a></li>
               
-                <li><a href='#unwatch'>unwatch</a></li>
+                <li><a href='#Micropilot-unwatch'>unwatch</a></li>
               
-                <li><a href='#upload'>upload</a></li>
+                <li><a href='#Micropilot-upload'>upload</a></li>
               
             </ul>
           </li>
@@ -369,7 +355,7 @@ code .comment {
 
             <ul>
               
-                <li><a href='#stop'>stop</a></li>
+                <li><a href='#Fuse-stop'>stop</a></li>
               
             </ul>
           </li>
@@ -383,7 +369,7 @@ code .comment {
           <input type="search" id="search-input" placeholder="Search"></input>
           <div id="search-results"></div>
         </div>
-        <h1>Micropilot <span class='version'>0.1.0</span></h1>
+        <h1>Micropilot <span class='version'>0.1</span></h1>
       </header>
 
       
@@ -393,41 +379,15 @@ code .comment {
           </header>
 
           <section>
-            
+            <p>Example Usage for module:</p>
+
+<div class="highlight"><pre lang="">require('micropilot').Micropilot("mystudy").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){
+   mtp.upload(url); mtp.stop() })
+</pre></div>
           </section>
 
           
-            <section class='method' id='main'>
-              <header>
-                <h3>main</h3>
-                <h4></h4>
-                <p class='type'></p>
-                
-              </header>
-
-              <section class='params'>
-                
-                <ul>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>Example Usage for module:</p>
-
-<p><div class="highlight"><pre lang=""> require('micropilot').Micropilot("mystudy").watch(['topic1','topic2']).run(84600 * 1000).then(function(mtp){     mtp.upload(url); mtp.stop() })  </pre></div></p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code></code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='uu'>
+            <section class='method' id='main-uu'>
               <header>
                 <h3>uu</h3>
                 <h4>uu</h4>
@@ -456,14 +416,16 @@ code .comment {
         return uuid().number.slice(1,-1)
 };</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='requestError'>
+            <section class='method' id='main-requestError'>
               <header>
                 <h3>requestError</h3>
                 <h4>requestError()</h4>
                 <p class='type'>function</p>
+                
+                  <p class='related'>See: <a href='#'>requestError</a></p>
                 
               </header>
 
@@ -486,266 +448,7 @@ code .comment {
                 <h4>Source</h4>
                 <pre><code>let requestError = function(evt) console.error(evt.target.errorCode);</code></pre>
               </section>
-              
-            </section>
-          
-            <section class='method' id='EventStore'>
-              <header>
-                <h3>EventStore</h3>
-                <h4>EventStore</h4>
-                <p class='type'>declaration</p>
-                
-                  <p class='related'>See: <a href='#'>EventStore</a></p>
-                
-              </header>
 
-              <section class='params'>
-                
-                  <h4>Params</h4>
-                
-                <ul>
-                  
-                    <li>collection - used in db and objectStore names.</li>
-                  
-                    <li>key - autoincrement key, (default: &quot;eventstoreid&quot;)</li>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>EventStore Constructor (Heritage)</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>let EventStore = exports.EventStore = Class({
-  initialize: function(collection,keyname){
-    this.collection = collection;
-    this.keyname = keyname || &quot;eventstoreid&quot;;
-  },
-  type: &quot;EventStore&quot;,</code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='Micropilot'>
-              <header>
-                <h3>Micropilot</h3>
-                <h4>Micropilot</h4>
-                <p class='type'>declaration</p>
-                
-                  <p class='related'>See: <a href='#'>Micropilot</a></p>
-                
-              </header>
-
-              <section class='params'>
-                
-                  <h4>Params</h4>
-                
-                <ul>
-                  
-                    <li>studyid - unique key to id the study (used by dbs, prefs)</li>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>Micropilot Heritage Object</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>let Micropilot = exports.Micropilot = Class({</code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='main'>
-              <header>
-                <h3>main</h3>
-                <h4></h4>
-                <p class='type'></p>
-                
-              </header>
-
-              <section class='params'>
-                
-                <ul>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>get and set the startDate</p>
-
-<p>@parent Micropilot</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>get startdate() this._startdate,
-  // resetting the startdate kills existing run / fuse
-  set startdate(ts) {
-    this.stop();
-    this._startdate = ts;
-  },</code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='snoop'>
-              <header>
-                <h3>snoop</h3>
-                <h4>snoop</h4>
-                <p class='type'>declaration</p>
-                
-              </header>
-
-              <section class='params'>
-                
-                <ul>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>gather general user data, including addons, os, etc.</p>
-
-<p>Properties:  appname, location, fxVersion, os, updateChannel, addons Returns {object} userdata</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>let snoop = exports.snoop = function(){
-  let LOCALE_PREF = &quot;general.useragent.locale&quot;;
-  let UPDATE_CHANNEL_PREF = &quot;app.update.channel&quot;;
-  let xa = require(&quot;xul-app&quot;);
-  let prefs = require('preferences-service');
-
-  let u = {};
-  u.appname = xa.name;
-  u.location = prefs.get(LOCALE_PREF)
-  u.fxVersion = xa.version;
-  u.os = require('runtime').os;
-  u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
-  u.addons = [] // get this in some sync way? or move this all to async?
-  return u;
-}</code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='Fuse'>
-              <header>
-                <h3>Fuse</h3>
-                <h4>Fuse</h4>
-                <p class='type'>declaration</p>
-                
-                  <p class='related'>See: <a href='#'>Fuse</a></p>
-                
-              </header>
-
-              <section class='params'>
-                
-                  <h4>Params</h4>
-                
-                <ul>
-                  
-                    <li>options - </li>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>Fuse Heritage Class</p>
-
-<p>Fuses trigger no sooner than <code>duration</code>, persisting over multiple runs. (Persistence achieved using <code>simple-store</code>, which ties a Fuse into a particular addon)</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>let Fuse = exports.Fuse = Class({
-  initialize: function(options){
-    let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
-    if (resolve_this === undefined) resolve_this = this;
-    this.pulseinterval =  pulseinterval;
-    let that = this;
-    this.start = start;
-    this.duration = duration;
-    let { promise, resolve } = defer();
-    this.promise = promise;
-    this.resolve = resolve;
-    // should this be setInterval, or setTimeout?
-    // setInterval allows one to modify the fuse while running
-    // more easily, but setTimeout is much more precise.
-    if (pulseinterval){
-      this.timerid = timers.setInterval(function(){
-        that.checking = true;
-        if (pulsefn) {pulsefn(that)}
-        if (! duration) return;
-        if (Date.now() &gt;= (that.start + that.duration)){
-          that.resolve(that.resolve_this);
-          that.stop();
-        }
-        that.checking=false;
-      },pulseinterval);
-    } else {
-      // TODO, what is setTimeout on a negative?
-      that.checking=false;
-      let timerunningsofar = (Date.now() - this.start);
-      if (duration &lt;= timerunningsofar) { // really short intervals
-        this.resolve(resolve_this);
-        this.stop();
-      } else {
-        this.timerid = timers.setTimeout(function(){
-          that.resolve(that.resolve_this);
-          that.stop();
-        }, duration - timerunningsofar);
-      }
-    }
-  },</code></pre>
-              </section>
-              
-            </section>
-          
-            <section class='method' id='main'>
-              <header>
-                <h3>main</h3>
-                <h4></h4>
-                <p class='type'></p>
-                
-              </header>
-
-              <section class='params'>
-                
-                <ul>
-                  
-                </ul>
-              </section>
-
-              
-
-              <section>
-                <p>promise</p>
-              </section>
-
-              <section class='source'>
-                <h4>Source</h4>
-                <pre><code>get then() this.promise.then,
-
-  type: 'Fuse',</code></pre>
-              </section>
-              
             </section>
           
         </article>
@@ -760,7 +463,7 @@ code .comment {
           </section>
 
           
-            <section class='method' id='db'>
+            <section class='method' id='EventStore-db'>
               <header>
                 <h3>db</h3>
                 <h4>EventStore</h4>
@@ -807,10 +510,10 @@ code .comment {
     return promise
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='add'>
+            <section class='method' id='EventStore-add'>
               <header>
                 <h3>add</h3>
                 <h4>EventStore</h4>
@@ -853,10 +556,10 @@ code .comment {
     return promise
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='getAll'>
+            <section class='method' id='EventStore-getAll'>
               <header>
                 <h3>getAll</h3>
                 <h4>EventStore</h4>
@@ -907,10 +610,10 @@ code .comment {
     return promise;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='clear'>
+            <section class='method' id='EventStore-clear'>
               <header>
                 <h3>clear</h3>
                 <h4>EventStore</h4>
@@ -950,7 +653,7 @@ code .comment {
   }
 });</code></pre>
               </section>
-              
+
             </section>
           
         </article>
@@ -965,7 +668,7 @@ code .comment {
           </section>
 
           
-            <section class='method' id='initialize'>
+            <section class='method' id='Micropilot-initialize'>
               <header>
                 <h3>initialize</h3>
                 <h4>Micropilot</h4>
@@ -1016,10 +719,10 @@ code .comment {
   },
   type: 'Micropilot',</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='data'>
+            <section class='method' id='Micropilot-data'>
               <header>
                 <h3>data</h3>
                 <h4>Micropilot</h4>
@@ -1048,10 +751,10 @@ code .comment {
                 <h4>Source</h4>
                 <pre><code>data: function() this.eventstore.getAll(),</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='clear'>
+            <section class='method' id='Micropilot-clear'>
               <header>
                 <h3>clear</h3>
                 <h4>Micropilot</h4>
@@ -1082,10 +785,10 @@ code .comment {
     return this.eventstore.clear();
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='record'>
+            <section class='method' id='Micropilot-record'>
               <header>
                 <h3>record</h3>
                 <h4>Micropilot</h4>
@@ -1121,10 +824,10 @@ code .comment {
     return resolve(this.eventstore.add(data));
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='run'>
+            <section class='method' id='Micropilot-run'>
               <header>
                 <h3>run</h3>
                 <h4>Micropilot</h4>
@@ -1169,10 +872,10 @@ code .comment {
     return deferred.promise;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='stop'>
+            <section class='method' id='Micropilot-stop'>
               <header>
                 <h3>stop</h3>
                 <h4>Micropilot</h4>
@@ -1205,10 +908,10 @@ code .comment {
     return this;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='_watch'>
+            <section class='method' id='Micropilot-_watch'>
               <header>
                 <h3>_watch</h3>
                 <h4>Micropilot</h4>
@@ -1246,10 +949,10 @@ code .comment {
     this._watched[topic] = cb;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='watch'>
+            <section class='method' id='Micropilot-watch'>
               <header>
                 <h3>watch</h3>
                 <h4>Micropilot</h4>
@@ -1284,10 +987,10 @@ code .comment {
       return this;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='_unwatch'>
+            <section class='method' id='Micropilot-_unwatch'>
               <header>
                 <h3>_unwatch</h3>
                 <h4>Micropilot</h4>
@@ -1318,10 +1021,10 @@ code .comment {
     delete this._watched[topic];
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='unwatch'>
+            <section class='method' id='Micropilot-unwatch'>
               <header>
                 <h3>unwatch</h3>
                 <h4>Micropilot</h4>
@@ -1357,10 +1060,10 @@ code .comment {
     return this;
   },</code></pre>
               </section>
-              
+
             </section>
           
-            <section class='method' id='upload'>
+            <section class='method' id='Micropilot-upload'>
               <header>
                 <h3>upload</h3>
                 <h4>Micropilot</h4>
@@ -1423,7 +1126,7 @@ code .comment {
 
 });</code></pre>
               </section>
-              
+
             </section>
           
         </article>
@@ -1440,7 +1143,7 @@ code .comment {
           </section>
 
           
-            <section class='method' id='stop'>
+            <section class='method' id='Fuse-stop'>
               <header>
                 <h3>stop</h3>
                 <h4>Fuse</h4>
@@ -1471,7 +1174,7 @@ code .comment {
   }
 });</code></pre>
               </section>
-              
+
             </section>
           
         </article>
