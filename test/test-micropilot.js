@@ -84,11 +84,32 @@ exports['test mtp watches multiple channels (replaced _watchfn)'] = function(ass
 };
 
 
-/*
-exports['test micropilot record works'] = function(assert,done){
-	bad(assert,done,"unfinished")
-};
-*/
+exports['test set startdate kills fuse'] = function(assert){
+  let mtp = Micropilot(uu());
+  mtp.run(10000000);  // light the fuse.
+  let fakedate = 100000;
+  assert.ok(mtp.fuse !== undefined)
+  mtp.startdate = fakedate;
+  assert.ok(mtp.fuse === undefined)
+  assert.ok(mtp.isrunning == false)
+  assert.ok(mtp.startdate == fakedate)
+}
+
+exports['test set startdate then run fuse use the startdate'] = function(assert){
+  let mtp = Micropilot(uu());
+  mtp.run(10000000);  // light the fuse.
+  let fakedate = 100000;
+  mtp.startdate = fakedate;
+  assert.ok(mtp.fuse === undefined)
+  mtp.run(10000000);  // re-light the fuse.
+  assert.ok(mtp.fuse.start == fakedate);
+}
+
+
+exports['test micropilot starts off isrunning'] = function(assert){
+  assert.ok(Micropilot(uu()).isrunning);
+}
+
 exports['test data gets all data'] = function(assert, done){
   let mtp = Micropilot(uu());
   let group = promised(Array);
@@ -104,6 +125,15 @@ exports['test data gets all data'] = function(assert, done){
 	group(mtp.record({abc:1}), mtp.record({abc:2}), mtp.record({abc:3})).then(check);
 };
 
+exports['test upload simulate resolves with request'] = function(assert,done){
+  let m = Micropilot(uu());
+  m._config.personid = "gregg";
+  m.upload('http://fake.com',{simulate: true}).then(function(request){
+    console.log(JSON.stringify(request.content));
+    assert.ok(request.content.personid == "gregg");
+    done();
+  })
+}
 
 /**
  * Call the underlying data store clear function
@@ -156,6 +186,11 @@ exports['test Fuse with intervals runs many times'] = function(assert,done){
 exports['test Fuse finishes'] = function(assert,done){
 	let f = Fuse({start: Date.now(), duration:10}).then(
 		good(assert,done));
+};
+
+exports['test interval fuse that is past due finishes'] = function(assert,done){
+  let f = Fuse({start: Date.now()-100, duration:10, pulseinterval:10}).then(
+    good(assert,done));
 };
 
 
