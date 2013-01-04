@@ -15,7 +15,16 @@ require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
 Api
 ----
 
-See `micropilot.html` in this directory.
+http://gregglind.github.com/micropilot/
+
+Coverage and Tests
+----------------------
+
+method:  https://gist.github.com/3900355
+result: http://gregglind.github.com/micropilot/coverreport.html
+
+
+
 
 Longer, Annotated Example, Demoing Api
 -----------------------------------------
@@ -139,8 +148,8 @@ Wait before running / delay startup (over restarts)?
 
 ```
   let {storage} = require("simple-storage");
-  if (! storage.firststart) ss.firststart = Date.now(); // tied to addon
-  Fuse({start: storeage.firststart,duration:86400 * 7 * 1000 /* 7 days */}).then(
+  if (! storage.firststart) storage.firststart = Date.now(); // tied to addon
+  Fuse({start: storage.firststart,duration:86400 * 7 * 1000 /* 7 days */}).then(
    function(){ Micropilot('delayedstudy').run()} )
 ```
 
@@ -231,10 +240,47 @@ My `startdate` is wrong
   mystudy.run(newduration).then(callback)
 ```
 
+Recurring upload of data?
+
+```
+  let {storage} = require("simple-storage");
+  if (! storage.lastupload) storage.lastupload = Date.now(); // tied to addon
+  let mtp = Micropilot('mystudy');  // running, able to record.
+
+  Fuse({start: storage.lastupload,duration:86400 * 1000 /* 1 days */}).then(
+    function(){
+      storage.lastupload = Date.now();
+      mtp.upload(URL).then(mtp.clear);  // if you really want clearing between!
+    })
+```
+
+Use With Existing Test Pilot 1?
+
+* create a Test Pilot experiment jar that loads your addon (using `study_base_classes`).
+* make the addon self destructing, using a Fuse and `addonManager`.
+* (the study here will track its own data and uploads)
+* Downsides
+  - TP1 will lose control of being able to stop the study
+  - much less transparent where the data is being stored.
+
+```
+
+  require('timers').setInterval()
+
+```
+
 Event Entry Order is Wrong / Some got lost
 
 * Events are written asynchronously.  Order is not guaranteed.
 * During catastrophic Firefox crash, some events may not be written.
+
+I want to persist other aspects / attributes of the study across restarts
+
+* `micropilot('mystudy')._config.YOURKEY // persists in addon`
+* use `simple-storage` directly
+* store things in prefs, using `simple-prefs` or `preferences-service`
+* Make an IndexedDb or Sqlite db
+* write a file to the profile
 
 
 I Want a Pony
