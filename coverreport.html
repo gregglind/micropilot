@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Coverate Results</title>
+<style>
+	.error { background: #F8D5D8 }
+	.count { font-weight: bold; border-radius: 3px }
+	.pass .count { background: #BFFFBF;}	.error .count { background: #F8D5D8; color: red}</style>
+</head>
+<body>
+<h1>lib/micropilot.js (100%)</h1>
+
+<pre>/*! vim:set ts=2 sw=2 sts=2 expandtab */
+/*! This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+<span class="pass" data-count="1"><span class="count">1</span>"use strict";
+</span>
+
+/**
+  * Example Usage for module:
+  *
+  * ```
+  * require('micropilot').Micropilot("mystudy").
+  *   watch(['topic1','topic2']).run(84600 * 1000).
+  *   then(function(mtp){
+  *    mtp.upload(url); mtp.stop()
+  *   })
+  * ```
+  *
+  * @module main
+*/
+
+/*!*/
+<span class="pass" data-count="1"><span class="count">1</span>const { Class } = require('sdk/core/heritage');
+</span><span class="pass" data-count="1"><span class="count">1</span>const { Collection } = require("collection");
+</span><span class="pass" data-count="1"><span class="count">1</span>const { defer, promised, resolve } = require('api-utils/promise');
+</span><span class="pass" data-count="1"><span class="count">1</span>const { indexedDB } = require('./indexed-db'); </span>// until it goes back in sdk
+<span class="pass" data-count="1"><span class="count">1</span>const observer = require("observer-service");
+</span><span class="pass" data-count="1"><span class="count">1</span>const pb = require("private-browsing");
+</span><span class="pass" data-count="1"><span class="count">1</span>const myprefs = require("simple-prefs").prefs;
+</span><span class="pass" data-count="1"><span class="count">1</span>const Request = require("request").Request;
+</span><span class="pass" data-count="1"><span class="count">1</span>const {storage} = require("simple-storage");
+</span><span class="pass" data-count="1"><span class="count">1</span>const timers = require("timers");
+</span><span class="pass" data-count="1"><span class="count">1</span>const uuid = require('sdk/util/uuid').uuid;
+</span>
+
+/** Random UUID as string, without braces.
+ *
+ * @return {string} random uuid without braces
+ *
+ * @memberOf main
+ */
+<span class="pass" data-count="1"><span class="count">1</span>let uu = exports.uu = function(){
+        <span class="pass" data-count="14"><span class="count">14</span>return uuid().number.slice(1,-1)
+}</span>;
+</span>
+/*! */
+<span class="pass" data-count="1"><span class="count">1</span>let UPLOAD_URL = exports.UPLOAD_URL = "https://testpilot.mozillalabs.com/submit/";
+</span>
+// Warning: micropilot steals the simple store 'micropilot' key by name
+<span class="pass" data-count="1"><span class="count">1</span>if (storage.micropilot===undefined) storage.micropilot = {};
+</span>
+/** common generic function to handle request errors
+  *
+  * Console errors the error code.
+  *
+  * @memberOf main
+  */
+<span class="pass" data-count="1"><span class="count">1</span>let requestError = function(evt) console.error(evt.target.errorCode);
+</span>
+
+/**
+  * EventStore Constructor (Heritage)
+  * @constructor
+  */
+<span class="pass" data-count="1"><span class="count">1</span>let EventStore = exports.EventStore = Class({
+
+  /** Create an event store.
+    *
+    * @param {string} collection used in db and objectStore names.
+    * @param {string} key autoincrement key, (default: "eventstoreid")
+    *
+    * @return EventStore instance
+    * @memberOf EventStore
+    */
+  initialize: function(collection,keyname){
+    <span class="pass" data-count="12"><span class="count">12</span>this.collection = collection;
+</span>    <span class="pass" data-count="12"><span class="count">12</span>this.keyname = keyname || "eventstoreid";
+</span>  },
+  type: "EventStore",
+  /** promise a indexedDB connection to `"micropilot-"+this.collection`.
+    *
+    * If first connection to db, creates object store:
+    *
+    * `createObjectStore(that.collection,{keyPath: that.keyname, autoIncrement: true }`
+    *
+    * Resolves on success with (`request.result`)
+    *
+    * @memberOf EventStore
+    */
+  db: function(){
+    <span class="pass" data-count="23"><span class="count">23</span>let that = this;
+</span>    <span class="pass" data-count="23"><span class="count">23</span>let {promise, resolve} = defer();
+</span>    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?
+    <span class="pass" data-count="23"><span class="count">23</span>let request = indexedDB.open("micropilot-"+that.collection,1);
+</span>    <span class="pass" data-count="23"><span class="count">23</span>request.onerror = requestError;
+</span>    <span class="pass" data-count="23"><span class="count">23</span>request.onupgradeneeded = function (event) {
+      <span class="pass" data-count="7"><span class="count">7</span>let objectStore = request.result.createObjectStore(that.collection,
+        {keyPath: that.keyname, autoIncrement: true });
+</span>    };
+</span>    // called after onupgradeneeded
+    <span class="pass" data-count="23"><span class="count">23</span>request.onsuccess = function(event) {
+      <span class="pass" data-count="18"><span class="count">18</span>resolve(request.result);
+</span>    };
+</span>    <span class="pass" data-count="23"><span class="count">23</span>return promise
+  }</span>,
+  /** promises to add data to the autoincrementing objectStore.
+    *
+    * Resolves on success with (`{id: newkey, data:data}`)
+    *
+    * @param {object} data jsonable data
+    *
+    * @memberOf EventStore
+    */
+  add: function(data){
+    <span class="pass" data-count="13"><span class="count">13</span>let that = this;
+</span>    <span class="pass" data-count="13"><span class="count">13</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="13"><span class="count">13</span>this.db().then(function(db){
+      <span class="pass" data-count="12"><span class="count">12</span>let request = db.transaction([that.collection], "readwrite").
+        objectStore(that.collection).add(data);
+</span>      <span class="pass" data-count="12"><span class="count">12</span>request.onsuccess = function (evt) {
+        <span class="pass" data-count="12"><span class="count">12</span>let newkey = evt.target.result;
+</span>        <span class="pass" data-count="12"><span class="count">12</span>resolve({id: newkey, data:data});
+</span>      };
+</span>      <span class="pass" data-count="12"><span class="count">12</span>request.onerror = requestError;
+</span>    })
+    <span class="pass" data-count="13"><span class="count">13</span>r</span>eturn promise
+  }</span>,
+  /** promise all data from the collection (async).
+    *
+    * Resolves on success (`data`).
+    *
+    * *Note*: non-blocking, only guarantees complete list of data if all
+    * writes have finished.
+    *
+    * @memberOf EventStore
+    */
+  getAll: function(){
+    // using getAll() doesn't seem to work, and isn't cross-platform
+    <span class="pass" data-count="10"><span class="count">10</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="10"><span class="count">10</span>let that = this;
+</span>    <span class="pass" data-count="10"><span class="count">10</span>this.db().then(function(db){
+      <span class="pass" data-count="6"><span class="count">6</span>let data = [];
+</span>      <span class="pass" data-count="6"><span class="count">6</span>let req = db.transaction([that.collection], "readonly").objectStore(that.collection).openCursor()
+      <span class="pass" data-count="6"><span class="count">6</span>r</span>eq.onsuccess = function(event) {
+        <span class="pass" data-count="15"><span class="count">15</span>let cursor = event.target.result;
+</span>        <span class="pass" data-count="15"><span class="count">15</span>if (cursor) {
+          <span class="pass" data-count="9"><span class="count">9</span>data.push(cursor.value);
+</span>          <span class="pass" data-count="9"><span class="count">9</span>cursor.continue();
+</span>        }
+        else {
+          <span class="pass" data-count="6"><span class="count">6</span>resolve(data);
+</span>        }
+</span>      };
+</span>      <span class="pass" data-count="6"><span class="count">6</span>req.onerror = requestError;
+</span>    })
+    <span class="pass" data-count="10"><span class="count">10</span>r</span>eturn promise;
+</span>  },
+  /** promise to drop the database.
+    *
+    * Resolves onsuccess (`request.result`)
+    * @memberOf EventStore
+    */
+  clear: function(){
+    <span class="pass" data-count="2"><span class="count">2</span>let that = this;
+</span>    <span class="pass" data-count="2"><span class="count">2</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="2"><span class="count">2</span>let request = indexedDB.deleteDatabase("micropilot-"+that.collection,1);
+</span>    <span class="pass" data-count="2"><span class="count">2</span>request.onerror = requestError;
+</span>    // called after onupgradeneeded
+    <span class="pass" data-count="2"><span class="count">2</span>request.onsuccess = function(event) {
+      <span class="pass" data-count="1"><span class="count">1</span>resolve(request.result);
+</span>    };
+</span>    <span class="pass" data-count="2"><span class="count">2</span>return promise;
+</span>  }
+});
+</span>
+/**
+  * Micropilot Heritage Object
+  *
+  * Persists over multiple runs.
+  * (Persistence achieved using `simple-store`, which ties a Micropilot into
+  * a particular addon)
+  *
+  * @param {string} studyid unique key to id the study (used by dbs, prefs)
+  * @constructor
+  *
+  * @returns Micropilot instance
+  */
+<span class="pass" data-count="1"><span class="count">1</span>let Micropilot = exports.Micropilot = Class({
+  /** Initialize the Micropilot
+    *
+    * internals:
+    *
+    * * `_watched`: observed topics
+    * * `eventstore`: an EventStore
+    * * `_config`: simple-store configuration
+    *   * `personid`:  a `uu()`  (set this if you want.)
+    *   * `_startdate`:  now, or then (if revived)
+    * * `isrunning`:  a brake on event recording
+    *
+    * @memberOf Micropilot
+    */
+  initialize: function(studyid){
+      // setup the indexdb
+      <span class="pass" data-count="11"><span class="count">11</span>this.studyid = studyid;
+</span>      <span class="pass" data-count="11"><span class="count">11</span>this._watched = {};
+</span>      <span class="pass" data-count="11"><span class="count">11</span>this.eventstore = EventStore(this.studyid);
+</span>      <span class="pass" data-count="11"><span class="count">11</span>this._config = storage.micropilot[studyid]; </span>// persists
+      <span class="pass" data-count="11"><span class="count">11</span>if (this._config === undefined) {
+        <span class="pass" data-count="11"><span class="count">11</span>this._config = {};
+</span>        <span class="pass" data-count="11"><span class="count">11</span>this._config.personid = uu();
+</span>      }
+</span>      <span class="pass" data-count="11"><span class="count">11</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
+      <span class="pass" data-count="11"><span class="count">11</span>this.isrunning = true; </span>// starts running by default
+  },
+  type: 'Micropilot',
+
+
+  /** get and set the startDate
+    *
+    * @memberOf Micropilot
+    */
+  get startdate() this._startdate,
+  // resetting the startdate kills existing run / fuse
+  set startdate(ts) {
+    <span class="pass" data-count="2"><span class="count">2</span>this.stop();
+</span>    <span class="pass" data-count="2"><span class="count">2</span>this._startdate = ts;
+</span>  },
+  /** promise of all recorded event data
+    *
+    * Resolve (`data`)
+    * @memberOf Micropilot
+    */
+  data: function() this.eventstore.getAll(),
+
+  /** promise to clear all data (by dropping the db)
+    *
+    * Resolve(`request.response`) // of the dropDatabse
+    * @memberOf Micropilot
+    */
+  clear: function(){
+    <span class="pass" data-count="2"><span class="count">2</span>return this.eventstore.clear();
+</span>  },
+
+  /** promise of `EventStore.add`, which is {id:<>,data:<>}
+    * unless record "doesn't happen" because of private browsing or non-running
+    *
+    * @memberOf Micropilot
+    */
+  record: function(data){
+    // TODO, what should these branches return?
+    <span class="pass" data-count="11"><span class="count">11</span>if (! this.isrunning) return resolve(undefined);
+</span>    <span class="pass" data-count="10"><span class="count">10</span>if (pb.isActive) return resolve(undefined); </span> // respect private browsing
+
+    // todo, what if it's not jsonable?
+    <span class="pass" data-count="10"><span class="count">10</span>JSON.stringify(data);
+</span>    <span class="pass" data-count="10"><span class="count">10</span>myprefs.logtoconsole && console.log("RECORDING:", JSON.stringify(data));
+</span>    <span class="pass" data-count="10"><span class="count">10</span>return resolve(this.eventstore.add(data));
+</span>  },
+
+  /** promise the study (setting a Fuse)
+    *
+    *
+    * Fuse set as {start: this.startdate,duration:duration}
+    * (modify startdate to 'run from some other time')
+    *
+    * False or Undefined duration runs forever.
+    *
+    * Resolves when the study fuse resolves.
+    *
+    * example:
+    *
+    *   `Micropilot('mystudy').run(1000).then(function(mtp){mtp.stop()})`
+    *
+    * @param {integer} duration milliseconds to run Fuse
+    * @memberOf Micropilot
+    *
+    */
+  run:  function(duration){
+    <span class="pass" data-count="7"><span class="count">7</span>this.stop();
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.isrunning = true; </span>// restart!
+    <span class="pass" data-count="7"><span class="count">7</span>let deferred = defer();
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let that = this;
+</span>    // iff!
+    <span class="pass" data-count="7"><span class="count">7</span>if (duration){
+      // should this allow / mix all fuse options?
+      <span class="pass" data-count="4"><span class="count">4</span>this.fuse = Fuse({start: this.startdate,duration:duration});
+</span>      <span class="pass" data-count="4"><span class="count">4</span>return this.fuse;
+</span>    } else {
+      // no duration, so infinite, so nothing to resolve.
+    }
+</span>    <span class="pass" data-count="3"><span class="count">3</span>return deferred.promise;
+</span>  },
+
+  /** stop the study (unset the fuse, `this.running` -> `false`)
+   *
+   * (after stopping, `record` will not work, unless one `run()` or
+   * or `isrunning` -> `true`)
+   *
+   * @return {micropilot} this
+   * @memberOf Micropilot
+   */
+  stop:  function(){
+    <span class="pass" data-count="14"><span class="count">14</span>this.isrunning = false;
+</span>    <span class="pass" data-count="14"><span class="count">14</span>this.fuse !== undefined && this.fuse.stop();
+</span>    <span class="pass" data-count="14"><span class="count">14</span>delete this.fuse;
+</span>    <span class="pass" data-count="14"><span class="count">14</span>return this;
+</span>  },
+
+  /** (internal) watch a topic, add to `observer-service`
+   *
+   * @param {string} topic topic to watch.
+   * @memberOf Micropilot
+   */
+  _watch: function(topic){
+    <span class="pass" data-count="9"><span class="count">9</span>if (this._watched[topic]) return
+</span>
+    <span class="pass" data-count="9"><span class="count">9</span>let that = this;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>let cb = this._watchfn || function(subject) {<span class="pass" data-count="1"><span class="count">1</span>that.record(subject)}</span>; </span>// recording.
+    <span class="pass" data-count="9"><span class="count">9</span>let o = observer.add(topic,cb); </span>// add to global watch list
+    <span class="pass" data-count="9"><span class="count">9</span>this._watched[topic] = cb;
+</span>  },
+
+  /** add topics to watch (non-destructive)
+    *
+    * @param {array} watch_list list of topics
+    * @return {micropilot} this
+    * @memberOf Micropilot
+    */
+  watch: function(watch_list){
+      <span class="pass" data-count="6"><span class="count">6</span>let that = this;
+</span>      <span class="pass" data-count="6"><span class="count">6</span>watch_list.forEach(function(t) that._watch(t))
+      <span class="pass" data-count="6"><span class="count">6</span>r</span>eturn this;
+</span>  },
+
+  /** (internal) stop watching topic
+    * @memberOf Micropilot
+    */
+  _unwatch: function(topic){
+    <span class="pass" data-count="7"><span class="count">7</span>let cb = this._watched[topic];
+</span>    <span class="pass" data-count="7"><span class="count">7</span>cb && observer.remove(topic,cb);
+</span>    <span class="pass" data-count="7"><span class="count">7</span>delete this._watched[topic];
+</span>  },
+
+  /** unwatch some topics (destructive)
+    * if `unwatch_list` is undefined, unwatch all.
+    *
+    * @param {array} unwatch_list list of topics to remove.  If undefined, unwatch all.
+    * @memberOf Micropilot
+    */
+  unwatch: function(unwatch_list){
+    <span class="pass" data-count="4"><span class="count">4</span>if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);
+</span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
+</span>    <span class="pass" data-count="4"><span class="count">4</span>unwatch_list.forEach(function(t) that._unwatch(t));
+</span>    <span class="pass" data-count="4"><span class="count">4</span>return this;
+</span>  },
+
+  /** promise to upload the data
+    *
+    * Options:
+    * - `simulate`:  don't post, promise the request
+    * - `uploadid`:  an id for the upload
+    *
+    * Resolves
+    * - if POST, after oncomplete (response)
+    * - if `options.simulate` (request)
+    *
+    * @param {string} url url to POST.
+    * @param {object} options some options, below.
+    * @memberOf Micropilot
+    */
+  upload:  function(url,options){
+    // get all... is this tangled between getting and posting?
+    // attempt to post
+    <span class="pass" data-count="4"><span class="count">4</span>options = options===undefined ? {} : options;
+</span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
+</span>    <span class="pass" data-count="4"><span class="count">4</span>let simulate = options.simulate;
+</span>    <span class="pass" data-count="4"><span class="count">4</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="4"><span class="count">4</span>let uploadid = options.uploadid || uu(); </span>// specific to the upload
+    <span class="pass" data-count="4"><span class="count">4</span>this.data().then(function(data){
+      <span class="pass" data-count="2"><span class="count">2</span>let payload = {events:data};
+</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.userdata = snoop();
+</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.ts = Date.now();
+</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.uploadid = uploadid;
+</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.personid = that._config.personid;
+</span>      <span class="pass" data-count="2"><span class="count">2</span>let R = Request({
+        url: url,
+        content: payload,
+        contentType: "application/json",
+        onComplete: function (response) {
+          <span class="pass" data-count="1"><span class="count">1</span>resolve(response) }</span>
+      });
+</span>      <span class="pass" data-count="2"><span class="count">2</span>if (simulate) {
+        <span class="pass" data-count="1"><span class="count">1</span>resolve(R);
+</span>      } else {
+        <span class="pass" data-count="1"><span class="count">1</span>R.post();
+</span>      }
+</span>    });
+</span>    <span class="pass" data-count="4"><span class="count">4</span>return promise;
+</span>  }
+
+});
+</span>
+/** gather general user data, including addons, os, etc.
+  *
+  * Properties:  appname, location, fxVersion, os, updateChannel, addons
+  * Returns {object} userdata
+  */
+<span class="pass" data-count="1"><span class="count">1</span>let snoop = exports.snoop = function(){
+  <span class="pass" data-count="3"><span class="count">3</span>let LOCALE_PREF = "general.useragent.locale";
+</span>  <span class="pass" data-count="3"><span class="count">3</span>let UPDATE_CHANNEL_PREF = "app.update.channel";
+</span>  <span class="pass" data-count="3"><span class="count">3</span>let xa = require("xul-app");
+</span>  <span class="pass" data-count="3"><span class="count">3</span>let prefs = require('preferences-service');
+</span>
+  <span class="pass" data-count="3"><span class="count">3</span>let u = {};
+</span>  <span class="pass" data-count="3"><span class="count">3</span>u.appname = xa.name;
+</span>  <span class="pass" data-count="3"><span class="count">3</span>u.location = prefs.get(LOCALE_PREF)
+  <span class="pass" data-count="3"><span class="count">3</span>u</span>.fxVersion = xa.version;
+</span>  <span class="pass" data-count="3"><span class="count">3</span>u.os = require('runtime').os;
+</span>  <span class="pass" data-count="3"><span class="count">3</span>u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
+  <span class="pass" data-count="3"><span class="count">3</span>u</span>.addons = [] // get this in some sync way? or move this all to async?
+  <span class="pass" data-count="3"><span class="count">3</span>r</span>eturn u;
+</span>}
+
+/** Fuse Heritage Class
+  *
+  * @constructor
+  */
+<span class="pass" data-count="1"><span class="count">1</span>l</span>et Fuse = exports.Fuse = Class({
+  /**
+    * Fuses trigger (resolve their promise) no sooner than `duration + start`
+    *
+    * (like a dynamite fuse)
+    *
+    * Options:
+    *
+    * - `start`:  start time for the fuse
+    * - `duration`: how long to run.
+    * - `pulseinterval`:  if defined, use a `setInterval` timer (see below)
+    * - `resolve_this`:  the `this` passed into the `then` during resolution
+    * - `pulsefn`:  if `setInterval` timer, run this function during every `pulse`
+    *
+    * `setInterval` vs. `setTimeout`:  Fuse is normally a `setTimeout`.  If you
+    * want finer control over it (including being able to modify the timers of
+    * running Fuses), use `pulseInterval` to make a `setInterval` timer.
+    *
+    * Note 1: "Short Fuses":  When the `duration` is very short, we don't guaranteed
+    * millisecond accuracy!
+    *
+    * Note 2:  Restart.  If a Fuse 'should fire' while Firefox is not running,
+    * it will fire the next time it can.
+    *
+    * Note 3:  Blast from the Past.  Fuses fire IFF
+    *
+    *   ```
+    *   Date.now() >= (that.start + that.duration)
+    *   ```
+    *
+    * Note 4: Persist a fuse over restarts.
+    *
+    * ```
+    *   let {storage} = require("simple-storage");
+    *   if (! storage.firststart) ss.firststart = Date.now(); // tied to addon
+    *   Fuse({start: storeage.firststart,duration:86400 * 7 * 1000 }).then(
+    *    function(){ Micropilot('delayedstudy').run()} )
+    * ```
+    *
+    * @memberOf Fuse
+    * @param {Object} options
+    * @returns Fuse instance
+    */
+  initialize: function(options){
+    <span class="pass" data-count="7"><span class="count">7</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>if (resolve_this === undefined) resolve_this = this;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.pulseinterval =  pulseinterval;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let that = this;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.start = start;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.duration = duration;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.promise = promise;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>this.resolve = resolve;
+</span>    // should this be setInterval, or setTimeout?
+    // setInterval allows one to modify the fuse while running
+    // more easily, but setTimeout is much more precise.
+    <span class="pass" data-count="7"><span class="count">7</span>if (pulseinterval){
+      <span class="pass" data-count="2"><span class="count">2</span>this.timerid = timers.setInterval(function(){
+        <span class="pass" data-count="12"><span class="count">12</span>that.checking = true;
+</span>        <span class="pass" data-count="12"><span class="count">12</span>if (pulsefn) {<span class="pass" data-count="11"><span class="count">11</span>pulsefn(that)}</span>
+</span>        <span class="pass" data-count="12"><span class="count">12</span>if (! duration) return;
+</span>        <span class="pass" data-count="12"><span class="count">12</span>if (Date.now() >= (that.start + that.duration)){
+          <span class="pass" data-count="1"><span class="count">1</span>that.resolve(that.resolve_this);
+</span>          <span class="pass" data-count="1"><span class="count">1</span>that.stop();
+</span>        }
+</span>        <span class="pass" data-count="12"><span class="count">12</span>that.checking=false;
+</span>      },pulseinterval);
+</span>    } else {
+      // TODO, what is setTimeout on a negative?
+      <span class="pass" data-count="5"><span class="count">5</span>that.checking=false;
+</span>      <span class="pass" data-count="5"><span class="count">5</span>let timerunningsofar = (Date.now() - this.start);
+</span>      <span class="pass" data-count="5"><span class="count">5</span>if (duration <= timerunningsofar) { // really short intervals
+        <span class="pass" data-count="1"><span class="count">1</span>this.resolve(resolve_this);
+</span>        <span class="pass" data-count="1"><span class="count">1</span>this.stop();
+</span>      } else {
+        <span class="pass" data-count="4"><span class="count">4</span>this.timerid = timers.setTimeout(function(){
+          <span class="pass" data-count="1"><span class="count">1</span>that.resolve(that.resolve_this);
+</span>          <span class="pass" data-count="1"><span class="count">1</span>that.stop();
+</span>        }, duration - timerunningsofar);
+</span>      }
+</span>    }
+</span>  },
+  /** promise the promise.  Resolves with `resolve_this`
+    *
+    */
+  get then() this.promise.then,
+
+  type: 'Fuse',
+  /** stop the fuse (clear the timeout).
+    *
+    * @return {fuse} this
+    * @memberOf Fuse
+    */
+  stop: function(){
+    <span class="pass" data-count="7"><span class="count">7</span>if (this.timerid) timers.clearTimeout(this.timerid);
+</span>    <span class="pass" data-count="7"><span class="count">7</span>return this
+  }</span>
+});
+</span>
+</pre><h1>lib/indexed-db.js (100%)</h1>
+
+<pre>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+<span class="pass" data-count="1"><span class="count">1</span>'use strict';
+</span>
+<span class="pass" data-count="1"><span class="count">1</span>module.metadata = {
+  "stability": "experimental"
+};
+</span>
+<span class="pass" data-count="1"><span class="count">1</span>const { Cc, Ci } = require('chrome');
+</span><span class="pass" data-count="1"><span class="count">1</span>const { id } = require('self');
+</span>
+// Injects `indexedDB` to `this` scope.
+<span class="pass" data-count="1"><span class="count">1</span>Cc["@mozilla.org/dom/indexeddb/manager;1"].
+getService(Ci.nsIIndexedDatabaseManager).
+initWindowless(this);
+</span>
+// Firefox 14 gets this with a prefix
+<span class="pass" data-count="1"><span class="count">1</span>if (typeof(indexedDB) === "undefined")
+  this.indexedDB = mozIndexedDB;
+</span>
+// Wrap `indexedDB` methods in order to prefix names
+// with add-on IDs. This is temporary workaround for
+// Bug 786688. Note: once bug is fixed and prefixing is
+// removed existing DBs will appear non-existing.
+<span class="pass" data-count="1"><span class="count">1</span>function prefixWrapper(method) {
+  <span class="pass" data-count="2"><span class="count">2</span>return function(name) {
+    <span class="pass" data-count="25"><span class="count">25</span>let args = [ id + ':' + name ].concat(Array.slice(arguments, 1));
+</span>    <span class="pass" data-count="25"><span class="count">25</span>return method.apply(indexedDB, args);
+</span>  }
+}</span>
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.indexedDB = Object.create(indexedDB, {
+  open: { value: prefixWrapper(indexedDB.open) },
+  deleteDatabase: { value: prefixWrapper(indexedDB.deleteDatabase) }
+});
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBKeyRange = IDBKeyRange;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.DOMException = Ci.nsIDOMDOMException;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBCursor = Ci.nsIIDBCursor;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBTransaction = Ci.nsIIDBTransaction;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBOpenDBRequest = Ci.nsIIDBOpenDBRequest;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBVersionChangeEvent = Ci.nsIIDBVersionChangeEvent;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBDatabase = Ci.nsIIDBDatabase;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBFactory = Ci.nsIIDBFactory;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBIndex = Ci.nsIIDBIndex;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBObjectStore = Ci.nsIIDBObjectStore;
+</span><span class="pass" data-count="1"><span class="count">1</span>exports.IDBRequest = Ci.nsIIDBRequest;
+</pre>
+</body>
+</html>
