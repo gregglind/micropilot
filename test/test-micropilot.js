@@ -13,7 +13,7 @@ let uu = exports.uu = function(){
 };
 const observer = require("observer-service");
 
-let {Micropilot,Fuse,EventStore,snoop} = require('micropilot');
+let {Micropilot,Fuse,EventStore,snoop, killaddon} = require('micropilot');
 
 let good = function(assert,done){
 	return function(){
@@ -193,6 +193,14 @@ exports['test interval fuse that is past due finishes'] = function(assert,done){
     good(assert,done));
 };
 
+
+/*  killaddon */
+
+exports['test killaddon, does'] = function(assert){
+  // NOT REALLY A WAY TO TEST THIS.
+  //killaddon();
+  assert.pass()
+}
 
 /*  integration test */
 
