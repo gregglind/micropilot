@@ -3,8 +3,13 @@ Micropilot
 
 Record user events directly in your Firefox addon with a one-file event observation, recording, and upload module.
 
-Example
+Examples
 ----------
+
+```
+require('micropilot').Micropilot('reallysimple').
+   record({a:1,ts: Date.now()}).then(function(m) m.ezupload())
+```
 
 ```
 require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
