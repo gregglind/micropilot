@@ -1,7 +1,7 @@
 Micropilot
 ==============
 
-Flavor your addon with a one-file event observation and recording platform.
+Record user events directly in your Firefox addon with a one-file event observation, recording, and upload module.
 
 Example
 ----------
@@ -12,6 +12,19 @@ require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
     function(mtp){ mtp.upload(url); mtp.stop() })
 ```
 
+Overview
+---------------
+
+1. Create monitor (creates IndexedDb collections to store records)
+2. Record JSON-able data
+   * directly, by calling `record()`, if the monitor is in scope.
+   * indirectly, by
+     - monitoring `observer-service` topics
+     - `require("observer-service").notify(topic,data)`
+3. Upload recorded data, to POST url of your choosing, including user metadata.
+4. Clean up (or don't!)
+
+
 Api
 ----
 
@@ -20,11 +33,8 @@ http://gregglind.github.com/micropilot/
 Coverage and Tests
 ----------------------
 
-method:  https://gist.github.com/3900355
-result: http://gregglind.github.com/micropilot/coverreport.html
-
-
-
+* method: https://gist.github.com/3900355
+* result: http://gregglind.github.com/micropilot/coverreport.html
 
 Longer, Annotated Example, Demoing Api
 -----------------------------------------
@@ -118,6 +128,7 @@ Longer, Annotated Example, Demoing Api
   assert.pass();
 ```
 
+
 FAQ
 -----
 
@@ -125,11 +136,24 @@ What are events?
 
 * any jsonable (as claimed by `JSON.stringify`) object.
 
+What is a topic?
+
+* just a string defining the 'message name' or 'message type'.
+* (convention comes from the [observer-service]https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/deprecated/observer-service.html)
+* you decide these for your own convenience.
+
+Why so much emphasis on the `observer-service`?
+
+* global message passing mechanism that crosses sandboxes (allows inter-addon communication)
+* robust and well-tested
+* many 'interesting' events are already being logged there.
+* (remember, you can `record` directly, if the monitor is in scope!)
+
 Timestamps on events?
 
 * you need to timestamp your own events!
 
-Run indefinitely...
+Run indefinitely / forever
 
    `micropilot('yourid').run()  // will never resolve.`
 
@@ -170,7 +194,7 @@ Remove all topics
 
   yourstudy.unwatch()
 
-Just record some event without setting up a channel:
+Just record some event without setting up a topic:
 
   `yourstudy.record(data)`
 
@@ -292,6 +316,10 @@ I Want a Pony
 Glossary
 -----------
 
+* `topic`:
+  - [Addon-sdk observer-service]https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/deprecated/observer-service.html
+  - [nsIObserverService]https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIObserverService
+  - [Partial List of Firefox Global Topics]https://developer.mozilla.org/en-US/docs/Observer_Notifications
 * `observe` / `notify`:  Global `observerService` terms.
 * `watch` / `unwatch`:  `Micropilot` listens to `observer` for `topics`
 * `record`: attempt to write data to the `IndexedDb`
@@ -301,7 +329,6 @@ Other Gory Details and Sharp Edges:
 -------------------------------------
 
 Study `run(duration).then(callback)` is a `setTimout` based on `Date.now()`, `startdate` and the `duration`.  If you want a more sophisticated timing loop, use a `Fuse` or write your own.
-
 
 Authors
 ----------
