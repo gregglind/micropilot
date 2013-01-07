@@ -129,11 +129,32 @@ exports['test upload simulate resolves with request'] = function(assert,done){
   let m = Micropilot(uu());
   m._config.personid = "gregg";
   m.upload('http://fake.com',{simulate: true}).then(function(request){
-    console.log(JSON.stringify(request.content));
+    //console.log(JSON.stringify(request.content));
     assert.ok(request.content.personid == "gregg");
     done();
   })
 }
+
+
+exports['test ezupload runs n times at interval, then cleans up, even on failure'] = function(assert,done){
+  let m = Micropilot(uu());
+  m.ezupload({url: "http://"+uu()+".com", interval: 10}).then(function(mtp){
+    //console.log(JSON.stringify(m._config));
+    assert.equal(3,m._config.uploadcounter);
+    assert.equal(true,m._config.completed);
+    done();
+  })
+}
+
+/* Not really a way to test that branch.
+exports['test ezupload can uninstall the addon'] = function(assert,done){
+  let m = Micropilot(uu());
+  m.ezupload({url: "http://"+uu()+".com", interval: 10, killaddon:true}).then(function(mtp){
+    assert.pass();
+    done();
+  })
+}*/
+
 
 /**
  * Call the underlying data store clear function
