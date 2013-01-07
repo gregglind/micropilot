@@ -9,7 +9,7 @@
 	.pass .count { background: #BFFFBF;}	.error .count { background: #F8D5D8; color: red}</style>
 </head>
 <body>
-<h1>lib/micropilot.js (100%)</h1>
+<h1>lib/micropilot.js (98%)</h1>
 
 <pre>/*! vim:set ts=2 sw=2 sts=2 expandtab */
 /*! This Source Code Form is subject to the terms of the Mozilla Public
@@ -53,12 +53,23 @@
  * @return {string} random uuid without braces
  *
  * @memberOf main
+ * @name uu
  */
 <span class="pass" data-count="1"><span class="count">1</span>let uu = exports.uu = function(){
-        <span class="pass" data-count="14"><span class="count">14</span>return uuid().number.slice(1,-1)
+        <span class="pass" data-count="18"><span class="count">18</span>return uuid().number.slice(1,-1)
 }</span>;
 </span>
-/*! */
+/** Upload url
+  *
+  * Usage:
+  * ```
+  *  Micropilot('mystudy').record({'a':1}).then(function(mtp){
+  *    mtp.upload(UPLOAD_URL + mtp.studyid);
+  *  })
+  * ```
+  * @memberOf main
+  * @name UPLOAD_URL
+  */
 <span class="pass" data-count="1"><span class="count">1</span>let UPLOAD_URL = exports.UPLOAD_URL = "https://testpilot.mozillalabs.com/submit/";
 </span>
 // Warning: micropilot steals the simple store 'micropilot' key by name
@@ -69,13 +80,14 @@
   * Console errors the error code.
   *
   * @memberOf main
+  * @name requestError
   */
 <span class="pass" data-count="1"><span class="count">1</span>let requestError = function(evt) console.error(evt.target.errorCode);
 </span>
 
 /**
   * EventStore Constructor (Heritage)
-  * @constructor
+  * @module EventStore
   */
 <span class="pass" data-count="1"><span class="count">1</span>let EventStore = exports.EventStore = Class({
 
@@ -86,10 +98,11 @@
     *
     * @return EventStore instance
     * @memberOf EventStore
+    * @name initialize
     */
   initialize: function(collection,keyname){
-    <span class="pass" data-count="12"><span class="count">12</span>this.collection = collection;
-</span>    <span class="pass" data-count="12"><span class="count">12</span>this.keyname = keyname || "eventstoreid";
+    <span class="pass" data-count="13"><span class="count">13</span>this.collection = collection;
+</span>    <span class="pass" data-count="13"><span class="count">13</span>this.keyname = keyname || "eventstoreid";
 </span>  },
   type: "EventStore",
   /** promise a indexedDB connection to `"micropilot-"+this.collection`.
@@ -101,22 +114,23 @@
     * Resolves on success with (`request.result`)
     *
     * @memberOf EventStore
+    * @name db
     */
   db: function(){
-    <span class="pass" data-count="23"><span class="count">23</span>let that = this;
-</span>    <span class="pass" data-count="23"><span class="count">23</span>let {promise, resolve} = defer();
+    <span class="pass" data-count="26"><span class="count">26</span>let that = this;
+</span>    <span class="pass" data-count="26"><span class="count">26</span>let {promise, resolve} = defer();
 </span>    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?
-    <span class="pass" data-count="23"><span class="count">23</span>let request = indexedDB.open("micropilot-"+that.collection,1);
-</span>    <span class="pass" data-count="23"><span class="count">23</span>request.onerror = requestError;
-</span>    <span class="pass" data-count="23"><span class="count">23</span>request.onupgradeneeded = function (event) {
-      <span class="pass" data-count="7"><span class="count">7</span>let objectStore = request.result.createObjectStore(that.collection,
+    <span class="pass" data-count="26"><span class="count">26</span>let request = indexedDB.open("micropilot-"+that.collection,1);
+</span>    <span class="pass" data-count="26"><span class="count">26</span>request.onerror = requestError;
+</span>    <span class="pass" data-count="26"><span class="count">26</span>request.onupgradeneeded = function (event) {
+      <span class="pass" data-count="8"><span class="count">8</span>let objectStore = request.result.createObjectStore(that.collection,
         {keyPath: that.keyname, autoIncrement: true });
 </span>    };
 </span>    // called after onupgradeneeded
-    <span class="pass" data-count="23"><span class="count">23</span>request.onsuccess = function(event) {
-      <span class="pass" data-count="18"><span class="count">18</span>resolve(request.result);
+    <span class="pass" data-count="26"><span class="count">26</span>request.onsuccess = function(event) {
+      <span class="pass" data-count="21"><span class="count">21</span>resolve(request.result);
 </span>    };
-</span>    <span class="pass" data-count="23"><span class="count">23</span>return promise
+</span>    <span class="pass" data-count="26"><span class="count">26</span>return promise
   }</span>,
   /** promises to add data to the autoincrementing objectStore.
     *
@@ -125,6 +139,7 @@
     * @param {object} data jsonable data
     *
     * @memberOf EventStore
+    * @name add
     */
   add: function(data){
     <span class="pass" data-count="13"><span class="count">13</span>let that = this;
@@ -147,44 +162,46 @@
     * *Note*: non-blocking, only guarantees complete list of data if all
     * writes have finished.
     *
-    * @memberOf EventStore
+    * @memberOf EventStor
+    * @name getAll
     */
   getAll: function(){
     // using getAll() doesn't seem to work, and isn't cross-platform
-    <span class="pass" data-count="10"><span class="count">10</span>let {promise, resolve} = defer();
-</span>    <span class="pass" data-count="10"><span class="count">10</span>let that = this;
-</span>    <span class="pass" data-count="10"><span class="count">10</span>this.db().then(function(db){
-      <span class="pass" data-count="6"><span class="count">6</span>let data = [];
-</span>      <span class="pass" data-count="6"><span class="count">6</span>let req = db.transaction([that.collection], "readonly").objectStore(that.collection).openCursor()
-      <span class="pass" data-count="6"><span class="count">6</span>r</span>eq.onsuccess = function(event) {
-        <span class="pass" data-count="15"><span class="count">15</span>let cursor = event.target.result;
-</span>        <span class="pass" data-count="15"><span class="count">15</span>if (cursor) {
+    <span class="pass" data-count="13"><span class="count">13</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="13"><span class="count">13</span>let that = this;
+</span>    <span class="pass" data-count="13"><span class="count">13</span>this.db().then(function(db){
+      <span class="pass" data-count="9"><span class="count">9</span>let data = [];
+</span>      <span class="pass" data-count="9"><span class="count">9</span>let req = db.transaction([that.collection], "readonly").objectStore(that.collection).openCursor()
+      <span class="pass" data-count="9"><span class="count">9</span>r</span>eq.onsuccess = function(event) {
+        <span class="pass" data-count="18"><span class="count">18</span>let cursor = event.target.result;
+</span>        <span class="pass" data-count="18"><span class="count">18</span>if (cursor) {
           <span class="pass" data-count="9"><span class="count">9</span>data.push(cursor.value);
 </span>          <span class="pass" data-count="9"><span class="count">9</span>cursor.continue();
 </span>        }
         else {
-          <span class="pass" data-count="6"><span class="count">6</span>resolve(data);
+          <span class="pass" data-count="9"><span class="count">9</span>resolve(data);
 </span>        }
 </span>      };
-</span>      <span class="pass" data-count="6"><span class="count">6</span>req.onerror = requestError;
+</span>      <span class="pass" data-count="9"><span class="count">9</span>req.onerror = requestError;
 </span>    })
-    <span class="pass" data-count="10"><span class="count">10</span>r</span>eturn promise;
+    <span class="pass" data-count="13"><span class="count">13</span>r</span>eturn promise;
 </span>  },
   /** promise to drop the database.
     *
     * Resolves onsuccess (`request.result`)
     * @memberOf EventStore
+    * @name clear
     */
   clear: function(){
-    <span class="pass" data-count="2"><span class="count">2</span>let that = this;
-</span>    <span class="pass" data-count="2"><span class="count">2</span>let {promise, resolve} = defer();
-</span>    <span class="pass" data-count="2"><span class="count">2</span>let request = indexedDB.deleteDatabase("micropilot-"+that.collection,1);
-</span>    <span class="pass" data-count="2"><span class="count">2</span>request.onerror = requestError;
+    <span class="pass" data-count="3"><span class="count">3</span>let that = this;
+</span>    <span class="pass" data-count="3"><span class="count">3</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="3"><span class="count">3</span>let request = indexedDB.deleteDatabase("micropilot-"+that.collection,1);
+</span>    <span class="pass" data-count="3"><span class="count">3</span>request.onerror = requestError;
 </span>    // called after onupgradeneeded
-    <span class="pass" data-count="2"><span class="count">2</span>request.onsuccess = function(event) {
-      <span class="pass" data-count="1"><span class="count">1</span>resolve(request.result);
+    <span class="pass" data-count="3"><span class="count">3</span>request.onsuccess = function(event) {
+      <span class="pass" data-count="2"><span class="count">2</span>resolve(request.result);
 </span>    };
-</span>    <span class="pass" data-count="2"><span class="count">2</span>return promise;
+</span>    <span class="pass" data-count="3"><span class="count">3</span>return promise;
 </span>  }
 });
 </span>
@@ -196,7 +213,7 @@
   * a particular addon)
   *
   * @param {string} studyid unique key to id the study (used by dbs, prefs)
-  * @constructor
+  * @module Micropilot
   *
   * @returns Micropilot instance
   */
@@ -213,19 +230,20 @@
     * * `isrunning`:  a brake on event recording
     *
     * @memberOf Micropilot
+    * @name initialize
     */
   initialize: function(studyid){
       // setup the indexdb
-      <span class="pass" data-count="11"><span class="count">11</span>this.studyid = studyid;
-</span>      <span class="pass" data-count="11"><span class="count">11</span>this._watched = {};
-</span>      <span class="pass" data-count="11"><span class="count">11</span>this.eventstore = EventStore(this.studyid);
-</span>      <span class="pass" data-count="11"><span class="count">11</span>this._config = storage.micropilot[studyid]; </span>// persists
-      <span class="pass" data-count="11"><span class="count">11</span>if (this._config === undefined) {
-        <span class="pass" data-count="11"><span class="count">11</span>this._config = {};
-</span>        <span class="pass" data-count="11"><span class="count">11</span>this._config.personid = uu();
+      <span class="pass" data-count="12"><span class="count">12</span>this.studyid = studyid;
+</span>      <span class="pass" data-count="12"><span class="count">12</span>this._watched = {};
+</span>      <span class="pass" data-count="12"><span class="count">12</span>this.eventstore = EventStore(this.studyid);
+</span>      <span class="pass" data-count="12"><span class="count">12</span>this._config = storage.micropilot[studyid]; </span>// persists
+      <span class="pass" data-count="12"><span class="count">12</span>if (this._config === undefined) {
+        <span class="pass" data-count="12"><span class="count">12</span>this._config = {};
+</span>        <span class="pass" data-count="12"><span class="count">12</span>this._config.personid = uu();
 </span>      }
-</span>      <span class="pass" data-count="11"><span class="count">11</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
-      <span class="pass" data-count="11"><span class="count">11</span>this.isrunning = true; </span>// starts running by default
+</span>      <span class="pass" data-count="12"><span class="count">12</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
+      <span class="pass" data-count="12"><span class="count">12</span>this.isrunning = true; </span>// starts running by default
   },
   type: 'Micropilot',
 
@@ -233,6 +251,7 @@
   /** get and set the startDate
     *
     * @memberOf Micropilot
+    * @name startdate
     */
   get startdate() this._startdate,
   // resetting the startdate kills existing run / fuse
@@ -244,6 +263,7 @@
     *
     * Resolve (`data`)
     * @memberOf Micropilot
+    * @name data
     */
   data: function() this.eventstore.getAll(),
 
@@ -251,15 +271,17 @@
     *
     * Resolve(`request.response`) // of the dropDatabse
     * @memberOf Micropilot
+    * @name clear
     */
   clear: function(){
-    <span class="pass" data-count="2"><span class="count">2</span>return this.eventstore.clear();
+    <span class="pass" data-count="3"><span class="count">3</span>return this.eventstore.clear();
 </span>  },
 
   /** promise of `EventStore.add`, which is {id:<>,data:<>}
     * unless record "doesn't happen" because of private browsing or non-running
     *
     * @memberOf Micropilot
+    * @name record
     */
   record: function(data){
     // TODO, what should these branches return?
@@ -288,6 +310,7 @@
     *
     * @param {integer} duration milliseconds to run Fuse
     * @memberOf Micropilot
+    * @name run
     *
     */
   run:  function(duration){
@@ -307,24 +330,26 @@
 </span>  },
 
   /** stop the study (unset the fuse, `this.running` -> `false`)
-   *
-   * (after stopping, `record` will not work, unless one `run()` or
-   * or `isrunning` -> `true`)
-   *
-   * @return {micropilot} this
-   * @memberOf Micropilot
-   */
+    *
+    * (after stopping, `record` will not work, unless one `run()` or
+    * or `isrunning` -> `true`)
+    *
+    * @return {micropilot} this
+    * @memberOf Micropilot
+    * @name stop
+    */
   stop:  function(){
-    <span class="pass" data-count="14"><span class="count">14</span>this.isrunning = false;
-</span>    <span class="pass" data-count="14"><span class="count">14</span>this.fuse !== undefined && this.fuse.stop();
-</span>    <span class="pass" data-count="14"><span class="count">14</span>delete this.fuse;
-</span>    <span class="pass" data-count="14"><span class="count">14</span>return this;
+    <span class="pass" data-count="15"><span class="count">15</span>this.isrunning = false;
+</span>    <span class="pass" data-count="15"><span class="count">15</span>this.fuse !== undefined && this.fuse.stop();
+</span>    <span class="pass" data-count="15"><span class="count">15</span>delete this.fuse;
+</span>    <span class="pass" data-count="15"><span class="count">15</span>return this;
 </span>  },
 
   /** (internal) watch a topic, add to `observer-service`
    *
    * @param {string} topic topic to watch.
    * @memberOf Micropilot
+   * @name _watch
    */
   _watch: function(topic){
     <span class="pass" data-count="9"><span class="count">9</span>if (this._watched[topic]) return
@@ -340,6 +365,7 @@
     * @param {array} watch_list list of topics
     * @return {micropilot} this
     * @memberOf Micropilot
+    * @name watch
     */
   watch: function(watch_list){
       <span class="pass" data-count="6"><span class="count">6</span>let that = this;
@@ -349,6 +375,7 @@
 
   /** (internal) stop watching topic
     * @memberOf Micropilot
+    * @name _unwatch
     */
   _unwatch: function(topic){
     <span class="pass" data-count="7"><span class="count">7</span>let cb = this._watched[topic];
@@ -361,12 +388,72 @@
     *
     * @param {array} unwatch_list list of topics to remove.  If undefined, unwatch all.
     * @memberOf Micropilot
+    * @name unwatch
     */
   unwatch: function(unwatch_list){
     <span class="pass" data-count="4"><span class="count">4</span>if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);
 </span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
 </span>    <span class="pass" data-count="4"><span class="count">4</span>unwatch_list.forEach(function(t) that._unwatch(t));
 </span>    <span class="pass" data-count="4"><span class="count">4</span>return this;
+</span>  },
+  /** promise simplified upload with strong opinions and retry semantics
+    *
+    * Options:
+    *
+    * - `url`:  defaults to `UPLOAD_URL + mtp.studyname`
+    * - `maxtries`:  Number of tries.  (`3`)
+    * - `interval`:  How long to wait between tries (60 min - `60*60*1000`)
+    * - `killaddon`:  Should the addon delete itself on completion? (`false`)
+    *
+    * *Note 1*:  https://github.com/gregglind/micropilot/issues/2
+    *
+    * *Note 2*:  `_config.completed` will will go to `true` on success or not.
+    *
+    * *Note 3*:  Adds some keys to `_config` persistence:
+    *
+    * - `completed`
+    * - `uploadcounter`
+    *
+    * This is Subject To Change, and just a starting point for how to talk
+    * about study state.
+    *
+    * @param {Object} options Upload options.
+    * @memberOf Micropilot
+    * @name ezupload
+    */
+  ezupload: function(options){
+    <span class="pass" data-count="1"><span class="count">1</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="1"><span class="count">1</span>let {url,maxtries,interval,killaddon:killpref} = options;
+</span>    <span class="pass" data-count="1"><span class="count">1</span>let that = this;
+</span>    <span class="pass" data-count="1"><span class="count">1</span>url = url || UPLOAD_URL + mtp.studyname;
+</span>    <span class="pass" data-count="1"><span class="count">1</span>maxtries = maxtries || 3
+    <span class="pass" data-count="1"><span class="count">1</span>i</span>nterval = interval || 60 * 60 * 1000; </span>// 60 minutes
+
+    <span class="pass" data-count="1"><span class="count">1</span>let mycleanup = function(){
+        <span class="pass" data-count="1"><span class="count">1</span>that._config.completed = true ; </span>// whatever properties you want
+        <span class="pass" data-count="1"><span class="count">1</span>let p = that.stop()
+        <span class="pass" data-count="1"><span class="count">1</span>p</span> = that.clear();
+</span>        <span class="pass" data-count="1"><span class="count">1</span>if (killpref) {
+          <span class="error" data-count="0"><span class="count">0</span>resolve(p.then(killaddon)); </span>  // stop the study, clear the data, uninstall the addon.
+        } else {
+          <span class="pass" data-count="1"><span class="count">1</span>resolve(p)
+        }</span>
+</span>    }
+
+    <span class="pass" data-count="1"><span class="count">1</span>i</span>f (this._config.uploadcounter === undefined) this._config.uploadcounter = 0;
+</span>    <span class="pass" data-count="1"><span class="count">1</span>let myupload = function() {
+      <span class="pass" data-count="4"><span class="count">4</span>if (that._config.uploadcounter >= maxtries) { <span class="pass" data-count="1"><span class="count">1</span>mycleanup(that); </span><span class="pass" data-count="1"><span class="count">1</span>return}</span><span class="pass" data-count="3"><span class="count">3</span>;</span> </span> // give up!
+      <span class="pass" data-count="3"><span class="count">3</span>that._config.uploadcounter += 1;
+</span>      <span class="pass" data-count="3"><span class="count">3</span>that.upload(url).then(function(response){
+        <span class="pass" data-count="3"><span class="count">3</span>if (response.status != "200") {  // try again in interval ms
+          <span class="pass" data-count="3"><span class="count">3</span>require('timers').setTimeout(function(){<span class="pass" data-count="3"><span class="count">3</span>myupload()}</span>, interval)
+        }</span> else {
+          <span class="error" data-count="0"><span class="count">0</span>mycleanup();
+</span>        }
+</span>      })
+    }</span>
+    <span class="pass" data-count="1"><span class="count">1</span>m</span>yupload();
+</span>    <span class="pass" data-count="1"><span class="count">1</span>return promise;
 </span>  },
 
   /** promise to upload the data
@@ -382,35 +469,36 @@
     * @param {string} url url to POST.
     * @param {object} options some options, below.
     * @memberOf Micropilot
+    * @name upload
     */
   upload:  function(url,options){
     // get all... is this tangled between getting and posting?
     // attempt to post
-    <span class="pass" data-count="4"><span class="count">4</span>options = options===undefined ? {} : options;
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let simulate = options.simulate;
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let { promise, resolve } = defer();
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let uploadid = options.uploadid || uu(); </span>// specific to the upload
-    <span class="pass" data-count="4"><span class="count">4</span>this.data().then(function(data){
-      <span class="pass" data-count="2"><span class="count">2</span>let payload = {events:data};
-</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.userdata = snoop();
-</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.ts = Date.now();
-</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.uploadid = uploadid;
-</span>      <span class="pass" data-count="2"><span class="count">2</span>payload.personid = that._config.personid;
-</span>      <span class="pass" data-count="2"><span class="count">2</span>let R = Request({
+    <span class="pass" data-count="7"><span class="count">7</span>options = options===undefined ? {} : options;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let that = this;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let simulate = options.simulate;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="7"><span class="count">7</span>let uploadid = options.uploadid || uu(); </span>// specific to the upload
+    <span class="pass" data-count="7"><span class="count">7</span>this.data().then(function(data){
+      <span class="pass" data-count="5"><span class="count">5</span>let payload = {events:data};
+</span>      <span class="pass" data-count="5"><span class="count">5</span>payload.userdata = snoop();
+</span>      <span class="pass" data-count="5"><span class="count">5</span>payload.ts = Date.now();
+</span>      <span class="pass" data-count="5"><span class="count">5</span>payload.uploadid = uploadid;
+</span>      <span class="pass" data-count="5"><span class="count">5</span>payload.personid = that._config.personid;
+</span>      <span class="pass" data-count="5"><span class="count">5</span>let R = Request({
         url: url,
         content: payload,
         contentType: "application/json",
         onComplete: function (response) {
-          <span class="pass" data-count="1"><span class="count">1</span>resolve(response) }</span>
+          <span class="pass" data-count="4"><span class="count">4</span>resolve(response) }</span>
       });
-</span>      <span class="pass" data-count="2"><span class="count">2</span>if (simulate) {
+</span>      <span class="pass" data-count="5"><span class="count">5</span>if (simulate) {
         <span class="pass" data-count="1"><span class="count">1</span>resolve(R);
 </span>      } else {
-        <span class="pass" data-count="1"><span class="count">1</span>R.post();
+        <span class="pass" data-count="4"><span class="count">4</span>R.post();
 </span>      }
 </span>    });
-</span>    <span class="pass" data-count="4"><span class="count">4</span>return promise;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>return promise;
 </span>  }
 
 });
@@ -419,26 +507,27 @@
   *
   * Properties:  appname, location, fxVersion, os, updateChannel, addons
   * Returns {object} userdata
+  * @name snoop
   */
 <span class="pass" data-count="1"><span class="count">1</span>let snoop = exports.snoop = function(){
-  <span class="pass" data-count="3"><span class="count">3</span>let LOCALE_PREF = "general.useragent.locale";
-</span>  <span class="pass" data-count="3"><span class="count">3</span>let UPDATE_CHANNEL_PREF = "app.update.channel";
-</span>  <span class="pass" data-count="3"><span class="count">3</span>let xa = require("xul-app");
-</span>  <span class="pass" data-count="3"><span class="count">3</span>let prefs = require('preferences-service');
+  <span class="pass" data-count="6"><span class="count">6</span>let LOCALE_PREF = "general.useragent.locale";
+</span>  <span class="pass" data-count="6"><span class="count">6</span>let UPDATE_CHANNEL_PREF = "app.update.channel";
+</span>  <span class="pass" data-count="6"><span class="count">6</span>let xa = require("xul-app");
+</span>  <span class="pass" data-count="6"><span class="count">6</span>let prefs = require('preferences-service');
 </span>
-  <span class="pass" data-count="3"><span class="count">3</span>let u = {};
-</span>  <span class="pass" data-count="3"><span class="count">3</span>u.appname = xa.name;
-</span>  <span class="pass" data-count="3"><span class="count">3</span>u.location = prefs.get(LOCALE_PREF)
-  <span class="pass" data-count="3"><span class="count">3</span>u</span>.fxVersion = xa.version;
-</span>  <span class="pass" data-count="3"><span class="count">3</span>u.os = require('runtime').os;
-</span>  <span class="pass" data-count="3"><span class="count">3</span>u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
-  <span class="pass" data-count="3"><span class="count">3</span>u</span>.addons = [] // get this in some sync way? or move this all to async?
-  <span class="pass" data-count="3"><span class="count">3</span>r</span>eturn u;
+  <span class="pass" data-count="6"><span class="count">6</span>let u = {};
+</span>  <span class="pass" data-count="6"><span class="count">6</span>u.appname = xa.name;
+</span>  <span class="pass" data-count="6"><span class="count">6</span>u.location = prefs.get(LOCALE_PREF)
+  <span class="pass" data-count="6"><span class="count">6</span>u</span>.fxVersion = xa.version;
+</span>  <span class="pass" data-count="6"><span class="count">6</span>u.os = require('runtime').os;
+</span>  <span class="pass" data-count="6"><span class="count">6</span>u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
+  <span class="pass" data-count="6"><span class="count">6</span>u</span>.addons = [] // get this in some sync way? or move this all to async?
+  <span class="pass" data-count="6"><span class="count">6</span>r</span>eturn u;
 </span>}
 
 /** Fuse Heritage Class
   *
-  * @constructor
+  * @module Fuse
   */
 <span class="pass" data-count="1"><span class="count">1</span>l</span>et Fuse = exports.Fuse = Class({
   /**
@@ -482,6 +571,7 @@
     * @memberOf Fuse
     * @param {Object} options
     * @returns Fuse instance
+    * @name initialize
     */
   initialize: function(options){
     <span class="pass" data-count="7"><span class="count">7</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
@@ -524,6 +614,8 @@
 </span>  },
   /** promise the promise.  Resolves with `resolve_this`
     *
+    * @memberOf Fuse
+    * @name then
     */
   get then() this.promise.then,
 
@@ -532,13 +624,24 @@
     *
     * @return {fuse} this
     * @memberOf Fuse
+    * @name stop
     */
   stop: function(){
     <span class="pass" data-count="7"><span class="count">7</span>if (this.timerid) timers.clearTimeout(this.timerid);
-</span>    <span class="pass" data-count="7"><span class="count">7</span>return this
-  }</span>
+</span>    <span class="pass" data-count="7"><span class="count">7</span>return this;
+</span>  }
 });
 </span>
+
+/** Self-destruct (uninstall) this addon
+  *
+  * @memberOf main
+  * @name killaddon
+  */
+<span class="pass" data-count="1"><span class="count">1</span>let killaddon = exports.killaddon = function(){
+  <span class="error" data-count="0"><span class="count">0</span>let id = require('self').id;
+</span>  <span class="error" data-count="0"><span class="count">0</span>require("sdk/addon/installer").uninstall(id);
+</span>}
 </pre><h1>lib/indexed-db.js (100%)</h1>
 
 <pre>/* This Source Code Form is subject to the terms of the Mozilla Public
@@ -569,8 +672,8 @@ initWindowless(this);
 // removed existing DBs will appear non-existing.
 <span class="pass" data-count="1"><span class="count">1</span>function prefixWrapper(method) {
   <span class="pass" data-count="2"><span class="count">2</span>return function(name) {
-    <span class="pass" data-count="25"><span class="count">25</span>let args = [ id + ':' + name ].concat(Array.slice(arguments, 1));
-</span>    <span class="pass" data-count="25"><span class="count">25</span>return method.apply(indexedDB, args);
+    <span class="pass" data-count="29"><span class="count">29</span>let args = [ id + ':' + name ].concat(Array.slice(arguments, 1));
+</span>    <span class="pass" data-count="29"><span class="count">29</span>return method.apply(indexedDB, args);
 </span>  }
 }</span>
 </span><span class="pass" data-count="1"><span class="count">1</span>exports.indexedDB = Object.create(indexedDB, {
