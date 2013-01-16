@@ -243,7 +243,7 @@ exports['test full integration test'] = function(assert){
   /* direct record call.  Simplest API. */
 
   monitor.data().then(function(data){assert.ok(data.length==1)})
-  /* Promises the data:  [{"c":1, "eventstoreid":1}] */
+  /* `data()` promises this data:  [{"c":1, "eventstoreid":1}] */
 
   monitor.clear().then(function(){assert.pass("async, clear the data and db")})
 

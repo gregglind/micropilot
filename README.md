@@ -3,6 +3,8 @@ Micropilot
 
 Record user events directly in your Firefox addon with a one-file event observation, recording, and upload module.
 
+Data operations are asynchronous, and use [promise-style apis](https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/core/promise.html).
+
 Examples
 ----------
 
@@ -12,7 +14,7 @@ require('micropilot').Micropilot('simplestudyid').
    record({a:1,ts: Date.now()}).then(function(m) m.ezupload())
    // which actually uploads!
 ```
-`
+
 ```
 // for 1 day, record any data notified on Observer topics ['topic1', 'topic2']
 // then upload to <url>, after that 24 hour Fuse completes
@@ -20,6 +22,22 @@ require("micropilot").Micropilot('otherstudyid').watch(['topic1','topic2']).
   run(24 * 60 * 60 * 1000 /*1 day Fuse */).then(
     function(mtp){ mtp.upload(url); mtp.stop() })
 ```
+
+```
+let monitor_tabopen = require('micropilot').Micropilot('tapopenstudy');
+var tabs = require('tabs');
+tabs.on('ready', function () {
+  monitor_tabopen.record({'msg:' 'tab ready', 'ts': Date.now()})
+});
+
+monitor_tabopen.run(86400*1000).then(function(mon){mon.ezupload()});
+  // Fuse:  24 hours-ish after first start, upload
+
+if (user_tells_us_to_stop_snooping){
+  monitor_tabopen.stop();
+}
+```
+
 
 Overview
 ---------------
@@ -32,6 +50,7 @@ Overview
      - `require("observer-service").notify(topic,data)`
 3. Upload recorded data, to POST url of your choosing, including user metadata.
 4. Clean up (or don't!)
+
 
 
 Api
@@ -63,7 +82,7 @@ Longer, Annotated Example, Demoing Api
   /* direct record call.  Simplest API. */
 
   monitor.data().then(function(data){assert.ok(data.length==1)})
-  /* Promises the data:  [{"c":1, "eventstoreid":1}] */
+  /* `data()` promises this data:  [{"c":1, "eventstoreid":1}] */
 
   monitor.clear().then(function(){assert.pass("async, clear the data and db")})
 
