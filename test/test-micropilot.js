@@ -37,10 +37,11 @@ exports['test EventStore add getall'] = function(assert,done){
   group(idb.add({a:1}), idb.add({b:2}),idb.add({c:3})).then(function(){
     idb.getAll().then(
       function(data){
-        // [{"a":1,"eventstoreid":1},
-      // {"b":2,"eventstoreid":2},
+        /// eventstoreids COULD BE in any order, due to async nature of record
+        // [{"a":1,"eventstoreid":2},
+        // {"b":2,"eventstoreid":1},
         // {"c":3,"eventstoreid":3}]
-        assert.equal(data.length,3)
+        assert.equal(data.length,3)  // but there will be 3 of them!
         done();
       }
     )
@@ -236,7 +237,7 @@ exports['test full integration test'] = function(assert){
       as now.
     *
   */
-  monitor.record({c:1}).then(function(d){assert.ok(d);
+  monitor.record({c:1}).then(function(d){
     assert.deepEqual(d,{"id":1,"data":{"c":1}} ) })
   /* in db => {"c"1, "eventstoreid":1} <- added "eventstoreid" key */
   /* direct record call.  Simplest API. */

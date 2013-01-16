@@ -7,13 +7,17 @@ Examples
 ----------
 
 ```
-require('micropilot').Micropilot('reallysimple').
+// record {a:1, ts: <now>}.  Then upload.
+require('micropilot').Micropilot('simplestudyid').
    record({a:1,ts: Date.now()}).then(function(m) m.ezupload())
+   // which actually uploads!
 ```
-
+`
 ```
-require("micropilot").Micropilot('mystudy').watch(['topic1','topic2']).
-  run(84600 * 1000 /*1 day*/).then(
+// for 1 day, record any data notified on Observer topics ['topic1', 'topic2']
+// then upload to <url>, after that 24 hour Fuse completes
+require("micropilot").Micropilot('otherstudyid').watch(['topic1','topic2']).
+  run(24 * 60 * 60 * 1000 /*1 day Fuse */).then(
     function(mtp){ mtp.upload(url); mtp.stop() })
 ```
 
@@ -53,7 +57,7 @@ Longer, Annotated Example, Demoing Api
       as now.
     *
   */
-  monitor.record({c:1}).then(function(d){assert.ok(d);
+  monitor.record({c:1}).then(function(d){
     assert.deepEqual(d,{"id":1,"data":{"c":1}} ) })
   /* in db => {"c"1, "eventstoreid":1} <- added "eventstoreid" key */
   /* direct record call.  Simplest API. */
