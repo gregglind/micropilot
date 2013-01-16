@@ -24,7 +24,7 @@
   * Example Usage for module:
   *
   * ```
-  * require('micropilot').Micropilot("mystudy").
+  * require('micropilot').Micropilot("mystudyid").
   *   watch(['topic1','topic2']).run(84600 * 1000).
   *   then(function(mtp){
   *    mtp.upload(url); mtp.stop()
@@ -32,7 +32,8 @@
   * ```
   *
   * @module main
-*/
+  *
+  */
 
 /*!*/
 <span class="pass" data-count="1"><span class="count">1</span>const { Class } = require('sdk/core/heritage');
@@ -115,6 +116,7 @@
     *
     * @memberOf EventStore
     * @name db
+    * @return promise
     */
   db: function(){
     <span class="pass" data-count="26"><span class="count">26</span>let that = this;
@@ -140,6 +142,7 @@
     *
     * @memberOf EventStore
     * @name add
+    * @return promise
     */
   add: function(data){
     <span class="pass" data-count="13"><span class="count">13</span>let that = this;
@@ -164,6 +167,7 @@
     *
     * @memberOf EventStor
     * @name getAll
+    * @return promise
     */
   getAll: function(){
     // using getAll() doesn't seem to work, and isn't cross-platform
@@ -191,6 +195,7 @@
     * Resolves onsuccess (`request.result`)
     * @memberOf EventStore
     * @name clear
+    * @return promise
     */
   clear: function(){
     <span class="pass" data-count="3"><span class="count">3</span>let that = this;
@@ -231,6 +236,7 @@
     *
     * @memberOf Micropilot
     * @name initialize
+    * @param {String} studyid Id for persistent store, db.
     */
   initialize: function(studyid){
       // setup the indexdb
@@ -264,6 +270,7 @@
     * Resolve (`data`)
     * @memberOf Micropilot
     * @name data
+    * @return promise
     */
   data: function() this.eventstore.getAll(),
 
@@ -272,6 +279,7 @@
     * Resolve(`request.response`) // of the dropDatabse
     * @memberOf Micropilot
     * @name clear
+    * @return promise
     */
   clear: function(){
     <span class="pass" data-count="3"><span class="count">3</span>return this.eventstore.clear();
@@ -282,9 +290,10 @@
     *
     * @memberOf Micropilot
     * @name record
+    * @return promise
     */
   record: function(data){
-    // TODO, what should these branches return?
+    // remember, `resolve` turns values into promises, and is noop on promises
     <span class="pass" data-count="11"><span class="count">11</span>if (! this.isrunning) return resolve(undefined);
 </span>    <span class="pass" data-count="10"><span class="count">10</span>if (pb.isActive) return resolve(undefined); </span> // respect private browsing
 
@@ -311,6 +320,7 @@
     * @param {integer} duration milliseconds to run Fuse
     * @memberOf Micropilot
     * @name run
+    * @return promise
     *
     */
   run:  function(duration){
@@ -350,6 +360,7 @@
    * @param {string} topic topic to watch.
    * @memberOf Micropilot
    * @name _watch
+   * @return undefined
    */
   _watch: function(topic){
     <span class="pass" data-count="9"><span class="count">9</span>if (this._watched[topic]) return
@@ -376,6 +387,7 @@
   /** (internal) stop watching topic
     * @memberOf Micropilot
     * @name _unwatch
+    * @return undefined
     */
   _unwatch: function(topic){
     <span class="pass" data-count="7"><span class="count">7</span>let cb = this._watched[topic];
@@ -389,6 +401,7 @@
     * @param {array} unwatch_list list of topics to remove.  If undefined, unwatch all.
     * @memberOf Micropilot
     * @name unwatch
+    * @return {micropilot} this
     */
   unwatch: function(unwatch_list){
     <span class="pass" data-count="4"><span class="count">4</span>if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);
@@ -420,6 +433,7 @@
     * @param {Object} options Upload options.
     * @memberOf Micropilot
     * @name ezupload
+    * @return promise
     */
   ezupload: function(options){
     <span class="pass" data-count="1"><span class="count">1</span>let { promise, resolve } = defer();
@@ -470,6 +484,7 @@
     * @param {object} options some options, below.
     * @memberOf Micropilot
     * @name upload
+    * @return promise
     */
   upload:  function(url,options){
     // get all... is this tangled between getting and posting?
@@ -506,7 +521,7 @@
 /** gather general user data, including addons, os, etc.
   *
   * Properties:  appname, location, fxVersion, os, updateChannel, addons
-  * Returns {object} userdata
+  * @return {object} userdata
   * @name snoop
   */
 <span class="pass" data-count="1"><span class="count">1</span>let snoop = exports.snoop = function(){
@@ -616,6 +631,7 @@
     *
     * @memberOf Fuse
     * @name then
+    * @return promise
     */
   get then() this.promise.then,
 
