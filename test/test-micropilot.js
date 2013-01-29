@@ -61,7 +61,7 @@ exports['test empty unwatch clears all topics'] = function(assert){
 exports['test mtp watches a channel (replaced _watchfn)'] = function(assert,done){
 	let mtp = Micropilot(uu());
 	mtp._watchfn = function(subject){mtp.unwatch(); mtp.stop(); good(assert,done)()};
-	mtp.watch(['kitten']).run()
+	mtp.watch(['kitten']).start()
 	observer.notify('kitten',{});
 };
 
@@ -78,7 +78,7 @@ exports['test mtp watches multiple channels (replaced _watchfn)'] = function(ass
 	assert.deepEqual(Object.keys(mtp._watched).sort(),['cat','kitten']);
 	mtp.watch(['dog']);
 	assert.deepEqual(Object.keys(mtp._watched).sort(),['cat','dog','kitten']);
-	mtp.run();
+	mtp.start();
 	observer.notify('kitten',{});
 	observer.notify('cat',{});
 	observer.notify('dog',{}); // seen all 3, should done!
@@ -87,32 +87,32 @@ exports['test mtp watches multiple channels (replaced _watchfn)'] = function(ass
 
 exports['test set startdate kills fuse'] = function(assert){
   let mtp = Micropilot(uu());
-  mtp.run(10000000);  // light the fuse.
+  mtp.lifetime(10000000);  // light the fuse.
   let fakedate = 100000;
   assert.ok(mtp.fuse !== undefined)
   mtp.startdate = fakedate;
   assert.ok(mtp.fuse === undefined)
-  assert.ok(mtp.isrunning == false)
+  assert.ok(mtp.willrecord == false)
   assert.ok(mtp.startdate == fakedate)
 }
 
 exports['test set startdate then run fuse use the startdate'] = function(assert){
   let mtp = Micropilot(uu());
-  mtp.run(10000000);  // light the fuse.
+  mtp.lifetime(10000000);  // light the fuse.
   let fakedate = 100000;
   mtp.startdate = fakedate;
   assert.ok(mtp.fuse === undefined)
-  mtp.run(10000000);  // re-light the fuse.
+  mtp.lifetime(10000000);  // re-light the fuse.
   assert.ok(mtp.fuse.start == fakedate);
 }
 
 
-exports['test micropilot starts off isrunning'] = function(assert){
-  assert.ok(Micropilot(uu()).isrunning);
+exports['test micropilot starts off NOT recording'] = function(assert){
+  assert.equal(Micropilot(uu()).willrecord, false);
 }
 
 exports['test data gets all data'] = function(assert, done){
-  let mtp = Micropilot(uu());
+  let mtp = Micropilot(uu()).start();
   let group = promised(Array);
   let check = function(){ mtp.data().then(function(data){
     if (data.length == 3){
@@ -237,6 +237,7 @@ exports['test full integration test'] = function(assert){
       as now.
     *
   */
+  monitor.start();
   monitor.record({c:1}).then(function(d){
     assert.deepEqual(d,{"id":1,"data":{"c":1}} ) })
   /* in db => {"c"1, "eventstoreid":1} <- added "eventstoreid" key */
@@ -271,15 +272,15 @@ exports['test full integration test'] = function(assert){
     assert.ok(data[0]['b'] == 1);
   })
 
-  monitor.isrunning = true;  // turns recording back on.
+  monitor.willrecord = true;  // turns recording back on.
 
   // Longer runs
   let microsecondstorun = 86400 * 1000 // 1 day!
-  monitor.run(microsecondstorun).then(function(mtp){
+  monitor.lifetime(microsecondstorun).then(function(mtp){
     console.log("Promises a Fuse that will be");
     console.log("called no earlier 24 hours after mtp.startdate.");
     console.log("Even / especially surviving Firefox restarts.");
-    console.log("Run stops any previous fuses.");
+    console.log("lifetime stops any previous fuses.");
     mtp.stop(); /* stop this study from recording*/
     mtp.upload(UPLOAD_URL).then(function(response){
       if (response.status != 200){
@@ -289,7 +290,7 @@ exports['test full integration test'] = function(assert){
   });
 
   monitor.stop();  // stop the Fuse!
-  monitor.run();   // no argument -> forever.  Returned promise will never resolve.
+  monitor.lifetime();   // no argument -> forever.  Returned promise will never resolve.
 
   // see what will be sent.
   monitor.upload('http://fake.com',{simulate: true}).then(function(request){

@@ -10,7 +10,7 @@ Examples
 
 ```
 // record {a:1, ts: <now>}.  Then upload.
-require('micropilot').Micropilot('simplestudyid').
+require('micropilot').Micropilot('simplestudyid').start().
    record({a:1,ts: Date.now()}).then(function(m) m.ezupload())
    // which actually uploads!
 ```
@@ -18,19 +18,19 @@ require('micropilot').Micropilot('simplestudyid').
 ```
 // for 1 day, record any data notified on Observer topics ['topic1', 'topic2']
 // then upload to <url>, after that 24 hour Fuse completes
-require("micropilot").Micropilot('otherstudyid').watch(['topic1','topic2']).
-  run(24 * 60 * 60 * 1000 /*1 day Fuse */).then(
+require("micropilot").Micropilot('otherstudyid').start().watch(['topic1','topic2']).
+  lifetime(24 * 60 * 60 * 1000 /*1 day Fuse */).then(
     function(mtp){ mtp.upload(url); mtp.stop() })
 ```
 
 ```
-let monitor_tabopen = require('micropilot').Micropilot('tapopenstudy');
+let monitor_tabopen = require('micropilot').Micropilot('tapopenstudy').start();
 var tabs = require('tabs');
 tabs.on('ready', function () {
   monitor_tabopen.record({'msg:' 'tab ready', 'ts': Date.now()})
 });
 
-monitor_tabopen.run(86400*1000).then(function(mon){mon.ezupload()});
+monitor_tabopen.lifetime(86400*1000).then(function(mon){mon.ezupload()});
   // Fuse:  24 hours-ish after first start, upload
 
 if (user_tells_us_to_stop_snooping){
@@ -110,15 +110,15 @@ Longer, Annotated Example, Demoing Api
     assert.ok(data[0]['b'] == 1);
   })
 
-  monitor.isrunning = true;  // turns recording back on.
+  monitor.willrecord = true;  // turns recording back on.
 
   // Longer runs
   let microsecondstorun = 86400 * 1000 // 1 day!
-  monitor.run(microsecondstorun).then(function(mtp){
+  monitor.lifetime(microsecondstorun).then(function(mtp){
     console.log("Promises a Fuse that will be");
     console.log("called no earlier 24 hours after mtp.startdate.");
     console.log("Even / especially surviving Firefox restarts.");
-    console.log("Run stops any previous fuses.");
+    console.log("`lifetime` or `stop` stops any previous fuses.");
     mtp.stop(); /* stop this study from recording*/
     mtp.upload(UPLOAD_URL).then(function(response){
       if (response.status != 200){
@@ -128,7 +128,7 @@ Longer, Annotated Example, Demoing Api
   });
 
   monitor.stop();  // stop the Fuse!
-  monitor.run();   // no argument -> forever.  Returned promise will never resolve.
+  monitor.lifetime();   // no argument -> forever.  Returned promise will never resolve.
 
   // see what will be sent.
   monitor.upload('http://fake.com',{simulate: true}).then(function(request){
@@ -183,7 +183,9 @@ Timestamps on events?
 
 Run indefinitely / forever
 
-   `micropilot('yourid').run()  // will never resolve.`
+   `micropilot('yourid').lifetime()  // will never resolve.`
+   `micropilot('yourid').start()  // will never resolve.`
+
 
 Wait before running / delay startup (for this restart)?
 
@@ -191,7 +193,7 @@ Wait before running / delay startup (for this restart)?
 
 ```
 	Fuse({start: Date.now(),duration:1000 /* 1 sec */}).then(
-	 function(){Micropilot('mystudy').run()} )
+	 function(){Micropilot('mystudy').start()} )
 ```
 
 Wait before running / delay startup (over restarts)?
@@ -202,14 +204,14 @@ Wait before running / delay startup (over restarts)?
   let {storage} = require("simple-storage");
   if (! storage.firststart) storage.firststart = Date.now(); // tied to addon
   Fuse({start: storage.firststart,duration:86400 * 7 * 1000 /* 7 days */}).then(
-   function(){ Micropilot('delayedstudy').run()} )
+   function(){ Micropilot('delayedstudy').start()} )
 ```
 
 Stop recording (messages arrive but aren't recorded)
 
 - turn on private browsing.  `require('pb').activate()` (soon to be deprecated!)
 - `yourstudy.stop()`
-- `yourstudy.isrunning = false`
+- `yourstudy.willrecord = false`
 
 Add more topics (channels), or remove them:
 
@@ -230,7 +232,7 @@ See all recording events in the console.
 
 - `require('simpleprefs').prefs['logtoconsole'] = true`
 
-Stop the callback in `run().then()`... (unlight the Fuse!)
+Stop the callback in `lifetime(duration).then()`... (unlight the Fuse!)
 
   `yourstudy.stop();`
 
@@ -245,13 +247,13 @@ Fusssing with internals:
 
 Do studies persist after Firefox shutdown / restart?
 
-* Yes, in that the start time is recorded using `simple-storeage`, ensuring that the duration is 'total duration'.  In other words `run(duration=many_ms)` will Do The Right Thing.
+* Yes, in that the start time is recorded using `simple-storeage`, ensuring that the duration is 'total duration'.  In other words `lifetime(duration=many_ms)` will Do The Right Thing.
 * Data persists between runs.
 
 How do I clean up my mess?
 
 ```
-  Micropilot('studyname').run(duration).then(function(mtp){
+  Micropilot('studyname').lifetime(duration).then(function(mtp){
     mtp.stop();
     mtp.upload(somewhere);
     mtp.cleardata();    // collection name might still exist
@@ -263,7 +265,7 @@ How do I clean up my mess?
 
 I don't want to actually record / I want to do something else on observation.
 
-* `yourstudy._watchfn = function(subject){}` before any registration / run.
+* `yourstudy._watchfn = function(subject){}` before any registration / start / lifetime.
 * (note:  you can't just replace `record` because it's a `heritage` frozen object key)
 
 How can I notify people on start / stop / comletion / upload?
@@ -289,7 +291,7 @@ My `startdate` is wrong
 ```
   // will stop the study run callback, if it exists
   mystudy.startdate = whenever  // setter
-  mystudy.run(newduration).then(callback)
+  mystudy.lifetime(newduration).then(callback)
 ```
 
 Recurring upload of data?
@@ -356,7 +358,7 @@ Glossary
 Other Gory Details and Sharp Edges:
 -------------------------------------
 
-Study `run(duration).then(callback)` is a `setTimout` based on `Date.now()`, `startdate` and the `duration`.  If you want a more sophisticated timing loop, use a `Fuse` or write your own.
+Study `lifetime(duration).then(callback)` is a `setTimout` based on `Date.now()`, `startdate` and the `duration`.  If you want a more sophisticated timing loop, use a `Fuse` or write your own.
 
 Authors
 ----------
