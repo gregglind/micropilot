@@ -209,9 +209,19 @@ Wait before running / delay startup (over restarts)?
 
 Stop recording (messages arrive but aren't recorded)
 
-- turn on private browsing.  `require('pb').activate()` (soon to be deprecated!)
 - `yourstudy.stop()`
 - `yourstudy.willrecord = false`
+
+
+Respect user privacy and private mode
+
+- Given the changes in `require("private-browsing")` at Firefox 20, this is really up to study authors to track themselves.  Ask @gregglind if you need help.
+- Be extra wary of `globalObserver` notifications, which might come from private windows.
+- Changes at Firefox 20:
+
+  * global `isActive` disappears
+  * per-window private mode starts
+
 
 Add more topics (channels), or remove them:
 
