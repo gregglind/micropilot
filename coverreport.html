@@ -9,7 +9,7 @@
 	.pass .count { background: #BFFFBF;}	.error .count { background: #F8D5D8; color: red}</style>
 </head>
 <body>
-<h1>lib/micropilot.js (98%)</h1>
+<h1>lib/micropilot.js (95%)</h1>
 
 <pre>/*! vim:set ts=2 sw=2 sts=2 expandtab */
 /*! This Source Code Form is subject to the terms of the Mozilla Public
@@ -19,7 +19,6 @@
 
 <span class="pass" data-count="1"><span class="count">1</span>"use strict";
 </span>
-
 /**
   * Example Usage for module:
   *
@@ -30,21 +29,22 @@
   *  })
   * ```
   *
+  * record `{a:1, ts: Date.now()}`.  Then upload.
   * ```
-  * // record {a:1, ts: Date.now()}.  Then upload.
   * require('micropilot').Micropilot('simplestudyid').start().
   *    record({a:1,ts: Date.now()}).then(function(m) m.ezupload())
   *    // which actually uploads!
   * ```
   *
+  * For 1 day, record any data notified on `Observer` topics `['topic1', 'topic2']`
+  * then upload to `<url>`, after that 24 hour `Fuse` completes.
   * ```
-  * // for 1 day, record any data notified on Observer topics ['topic1', 'topic2']
-  * // then upload to <url>, after that 24 hour Fuse completes
   * require("micropilot").Micropilot('otherstudyid').start().watch(['topic1','topic2']).
   *   lifetime(24 * 60 * 60 * 1000).then(
   *     function(mtp){ mtp.upload(url); mtp.stop() })
   * ```
   *
+  * How a more realistic study might look.
   * ```
   * let monitor_tabopen = require('micropilot').Micropilot('tapopenstudy');
   * var tabs = require('tabs');
@@ -64,13 +64,61 @@
   *
   */
 
+/**! Metadata about this module. */
+<span class="pass" data-count="1"><span class="count">1</span>exports.metadata = {
+  "stability": "experimental",
+  "engines": {
+    "Firefox": "17",
+    "Fennec": "17"
+  }
+};
+</span>
+
+/** Return first-successful reqiured module from a list of paths
+ *
+ * @return {object} required module
+ *
+ * @param {Array} paths strings of module paths to try
+ * @param {string} msg throw message on failure of all paths (default: "No such module")
+ *
+ * @memberOf main
+ * @name requireAny
+ */
+<span class="pass" data-count="1"><span class="count">1</span>function requireAny(paths,msg) {
+  <span class="error" data-count="0"><span class="count">0</span>msg = msg ||  "No such module";
+</span>  // path of paths
+  <span class="error" data-count="0"><span class="count">0</span>for (let i = 0, ii = paths.length; i < ii; i++) {
+    <span class="error" data-count="0"><span class="count">0</span>try {
+      <span class="error" data-count="0"><span class="count">0</span>return require(paths[i]);
+</span>    } catch (e) {
+      <span class="error" data-count="0"><span class="count">0</span>console.log(e);
+</span>    }
+</span>  } </span><span class="error" data-count="0"><span class="count">0</span>throw msg;
+</span>}<span class="pass" data-count="1"><span class="count">1</span>;</span>
+</span>
+
+/*! this gets them into the xpi tarball, if they are present
+  Don't use the comment/regex trick because comments don't go
+  through to covered code :/
+*/
+<span class="pass" data-count="1"><span class="count">1</span>try {
+  <span class="pass" data-count="1"><span class="count">1</span>require("indexed-db");
+</span>  <span class="pass" data-count="1"><span class="count">1</span>require("./indexed-db-17");
+</span>} catch (e){}<span class="pass" data-count="1"><span class="count">1</span>;</span>
+</span>
 /*!*/
+<span class="pass" data-count="1"><span class="count">1</span>const xulApp = require('sdk/system/xul-app');
+</span>
 <span class="pass" data-count="1"><span class="count">1</span>const { Class } = require('sdk/core/heritage');
 </span><span class="pass" data-count="1"><span class="count">1</span>const { Collection } = require("collection");
 </span><span class="pass" data-count="1"><span class="count">1</span>const { defer, promised, resolve } = require('api-utils/promise');
-</span><span class="pass" data-count="1"><span class="count">1</span>const { indexedDB } = require('./indexed-db'); </span>// until it goes back in sdk
-<span class="pass" data-count="1"><span class="count">1</span>const observer = require("observer-service");
-</span><span class="pass" data-count="1"><span class="count">1</span>const pb = require("private-browsing");
+</span><span class="pass" data-count="1"><span class="count">1</span>if (xulApp.versionInRange(xulApp.version,17,18)) { // 17 only
+  <span class="error" data-count="0"><span class="count">0</span>var { indexedDB } = requireAny(['./indexed-db-17'],
+      "no indexed-db found.  If fx version < 18, include indexed-db-17.js in build.");
+</span>} else {
+  <span class="pass" data-count="1"><span class="count">1</span>var { indexedDB } = require('indexed-db');
+</span>}
+</span><span class="pass" data-count="1"><span class="count">1</span>const observer = require("observer-service");
 </span><span class="pass" data-count="1"><span class="count">1</span>const myprefs = require("simple-prefs").prefs;
 </span><span class="pass" data-count="1"><span class="count">1</span>const Request = require("request").Request;
 </span><span class="pass" data-count="1"><span class="count">1</span>const {storage} = require("simple-storage");
@@ -96,6 +144,7 @@
   */
 <span class="pass" data-count="1"><span class="count">1</span>let UPLOAD_URL = exports.UPLOAD_URL = "https://testpilot.mozillalabs.com/submit/";
 </span>
+/**!*/
 // Warning: micropilot steals the simple store 'micropilot' key by name
 <span class="pass" data-count="1"><span class="count">1</span>if (storage.micropilot===undefined) storage.micropilot = {};
 </span>
@@ -309,7 +358,7 @@
 </span>  },
 
   /** promise of `EventStore.add`, which is {id:<>,data:<>}
-    * unless record "doesn't happen" because of private browsing or non-running
+    * unless record "doesn't happen" because of non-running
     *
     * @memberOf Micropilot
     * @name record
@@ -318,8 +367,7 @@
   record: function(data){
     // remember, `resolve` turns values into promises, and is noop on promises
     <span class="pass" data-count="11"><span class="count">11</span>if (! this.willrecord) return resolve(undefined);
-</span>    <span class="pass" data-count="5"><span class="count">5</span>if (pb.isActive) return resolve(undefined); </span> // respect private browsing
-
+</span>
     // todo, what if it's not jsonable?
     <span class="pass" data-count="5"><span class="count">5</span>JSON.stringify(data);
 </span>    <span class="pass" data-count="5"><span class="count">5</span>myprefs.logtoconsole && console.log("willrecord:", JSON.stringify(data));
@@ -481,8 +529,8 @@
 
     <span class="pass" data-count="1"><span class="count">1</span>let mycleanup = function(){
         <span class="pass" data-count="1"><span class="count">1</span>that._config.completed = true ; </span>// whatever properties you want
-        <span class="pass" data-count="1"><span class="count">1</span>let p = that.stop()
-        <span class="pass" data-count="1"><span class="count">1</span>p</span> = that.clear();
+        <span class="pass" data-count="1"><span class="count">1</span>let p = that.stop();
+</span>        <span class="pass" data-count="1"><span class="count">1</span>p = that.clear();
 </span>        <span class="pass" data-count="1"><span class="count">1</span>if (killpref) {
           <span class="error" data-count="0"><span class="count">0</span>resolve(p.then(killaddon)); </span>  // stop the study, clear the data, uninstall the addon.
         } else {
@@ -494,11 +542,12 @@
 </span>    <span class="pass" data-count="1"><span class="count">1</span>let myupload = function() {
       <span class="pass" data-count="4"><span class="count">4</span>if (that._config.uploadcounter >= maxtries) { <span class="pass" data-count="1"><span class="count">1</span>mycleanup(that); </span><span class="pass" data-count="1"><span class="count">1</span>return}</span><span class="pass" data-count="3"><span class="count">3</span>;</span> </span> // give up!
       <span class="pass" data-count="3"><span class="count">3</span>that._config.uploadcounter += 1;
-</span>      <span class="pass" data-count="3"><span class="count">3</span>that.upload(url).then(function(response){
+</span>
+      <span class="pass" data-count="3"><span class="count">3</span>that.upload(url).then(function(response){
         <span class="pass" data-count="3"><span class="count">3</span>if (response.status != "200") {  // try again in interval ms
           <span class="pass" data-count="3"><span class="count">3</span>require('timers').setTimeout(function(){<span class="pass" data-count="3"><span class="count">3</span>myupload()}</span>, interval)
         }</span> else {
-          <span class="error" data-count="0"><span class="count">0</span>mycleanup();
+          <span class="error" data-count="0"><span class="count">0</span>resolve(mycleanup());
 </span>        }
 </span>      })
     }</span>
@@ -695,7 +744,7 @@
   <span class="error" data-count="0"><span class="count">0</span>let id = require('self').id;
 </span>  <span class="error" data-count="0"><span class="count">0</span>require("sdk/addon/installer").uninstall(id);
 </span>}
-</pre><h1>lib/indexed-db.js (100%)</h1>
+</pre><h1>lib/indexed-db-17.js (91%)</h1>
 
 <pre>/* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -725,8 +774,8 @@ initWindowless(this);
 // removed existing DBs will appear non-existing.
 <span class="pass" data-count="1"><span class="count">1</span>function prefixWrapper(method) {
   <span class="pass" data-count="2"><span class="count">2</span>return function(name) {
-    <span class="pass" data-count="1025"><span class="count">1025</span>let args = [ id + ':' + name ].concat(Array.slice(arguments, 1));
-</span>    <span class="pass" data-count="1025"><span class="count">1025</span>return method.apply(indexedDB, args);
+    <span class="error" data-count="0"><span class="count">0</span>let args = [ id + ':' + name ].concat(Array.slice(arguments, 1));
+</span>    <span class="error" data-count="0"><span class="count">0</span>return method.apply(indexedDB, args);
 </span>  }
 }</span>
 </span><span class="pass" data-count="1"><span class="count">1</span>exports.indexedDB = Object.create(indexedDB, {
