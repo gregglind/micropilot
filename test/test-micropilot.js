@@ -139,8 +139,8 @@ exports['test upload simulate resolves with request'] = function(assert,done){
 
 exports['test ezupload runs n times at interval, then cleans up, even on failure'] = function(assert,done){
   let m = Micropilot(uu());
-  m.ezupload({url: "http://"+uu()+".com", interval: 10}).then(function(mtp){
-    //console.log(JSON.stringify(m._config));
+  m.ezupload({url: "http://"+uu()+".com", interval: 5}).then(function(mtp){
+    //console.log("MCONFIG:",JSON.stringify(m._config));
     assert.equal(3,m._config.uploadcounter);
     assert.equal(true,m._config.completed);
     done();

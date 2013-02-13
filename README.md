@@ -156,6 +156,21 @@ Longer, Annotated Example, Demoing Api
   assert.pass();
 ```
 
+Supported Versions
+----------------------
+
+Desktop Firefox 17+ is supported.  (16's IndexedDB is too different).  If you need Firefox 17 support, remember to copy `lib/indexed-db-17.js`.  18+ doesn't require this.
+
+Mobile Firefox 21+ is known to work.  Other versions are untested, but probably safe.
+
+Checking this is your responsibility.
+
+```
+  if (require('sdk/system/xul-app').version < 17){
+    require("request").Request("personalized/phone/home/url").get()
+  }
+```
+
 
 FAQ
 -----
@@ -180,6 +195,7 @@ Why so much emphasis on the `observer-service`?
 Timestamps on events?
 
 * you need to timestamp your own events!
+
 
 Run indefinitely / forever
 
@@ -318,6 +334,12 @@ Recurring upload of data?
     })
 ```
 
+How well does it perform / scale?
+
+* on mobile it has been measured to write 40 events/sec.
+* on desktop (OSX) it has been measured at 120-240 events/sec.
+* Plan for 10, and you will probably be happier.
+
 Use With Existing Test Pilot 1?
 
 * create a Test Pilot experiment jar that loads your addon (using `study_base_classes`).
@@ -345,7 +367,6 @@ I want to persist other aspects / attributes of the study across restarts
 * store things in prefs, using `simple-prefs` or `preferences-service`
 * Make an IndexedDb or Sqlite db
 * write a file to the profile
-
 
 I Want a Pony
 
