@@ -248,15 +248,20 @@ Add more topics (channels), or remove them:
 
 Remove all topics
 
-  yourstudy.unwatch()
+  `yourstudy.unwatch()`
 
 Just record some event without setting up a topic:
 
   `yourstudy.record(data)`
 
-See all recording events in the console.
+See / log all recording events in the console
 
-- `require('simpleprefs').prefs['logtoconsole'] = true`
+- set these two prefs (issue report)[https://github.com/gregglind/micropilot/issues/6]
+
+```
+  require("simple-prefs").prefs["micropilotlog"] = true
+  require("simple-prefs").prefs["sdk.console.logLevel"] = 0
+```
 
 Stop the callback in `lifetime(duration).then()`... (unlight the Fuse!)
 
