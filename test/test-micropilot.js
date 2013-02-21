@@ -218,8 +218,16 @@ exports['test Fuse with intervals runs many times'] = function(assert,done){
 exports['test Fuse finishes'] = function(assert,done){
 	let f = Fuse({start: Date.now(), duration:10}).then(
     function(r){
-      console.log("here!");
 		  good(assert,done)();
+    })
+};
+
+
+exports['test Fuse promises undefined'] = function(assert,done){
+  let f = Fuse({start: Date.now(), duration:10}).then(
+    function(r){
+      assert.ok(r === undefined);
+      done()
     })
 };
 
