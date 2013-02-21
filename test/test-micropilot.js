@@ -187,6 +187,16 @@ exports['test upload'] = function(assert,done){
   })
 }
 
+exports['test lifetime resolves with the study'] = function(assert,done){
+  let studyid = uu();
+  let mtp = Micropilot(studyid);
+  assert.ok(mtp.studyid==studyid);
+  mtp.lifetime(1).then(function(s){
+    assert.ok(s.studyid==mtp.studyid);
+    done();
+  });  // light the fuse.
+}
+
 /* snoop */
 
 exports['test snoop does something'] = function(assert){
@@ -207,7 +217,10 @@ exports['test Fuse with intervals runs many times'] = function(assert,done){
 
 exports['test Fuse finishes'] = function(assert,done){
 	let f = Fuse({start: Date.now(), duration:10}).then(
-		good(assert,done));
+    function(r){
+      console.log("here!");
+		  good(assert,done)();
+    })
 };
 
 exports['test interval fuse that is past due finishes'] = function(assert,done){
