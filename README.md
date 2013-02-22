@@ -16,7 +16,7 @@ require('micropilot').Micropilot('simplestudyid').start().
 ```
 
 ```
-// for 1 day, record any data notified on Observer topics ['topic1', 'topic2']
+// for 1 day, record *and annotate* any data notified on Observer topics ['topic1', 'topic2']
 // then upload to <url>, after that 24 hour Fuse completes
 require("micropilot").Micropilot('otherstudyid').start().watch(['topic1','topic2']).
   lifetime(24 * 60 * 60 * 1000 /*1 day Fuse */).then(
@@ -185,6 +185,12 @@ What is a topic?
 * (convention comes from the [observer-service]https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/deprecated/observer-service.html)
 * you decide these for your own convenience.
 
+
+Watch vs. Record
+
+* `watch` records {"msg": topic, "data": data, "ts": Date.now()}
+* `record` is unvarnished, "as is" recording.
+
 Why so much emphasis on the `observer-service`?
 
 * global message passing mechanism that crosses sandboxes (allows inter-addon communication)
@@ -194,7 +200,8 @@ Why so much emphasis on the `observer-service`?
 
 Timestamps on events?
 
-* you need to timestamp your own events!
+* `record` - you need to timestamp your own events!
+* `watch` - will come in with the timestamp *at recording*.  This might be different than when the event actually originated.
 
 
 Run indefinitely / forever
@@ -296,8 +303,8 @@ How do I clean up my mess?
 
 I don't want to actually record / I want to do something else on observation.
 
-* `yourstudy._watchfn = function(subject){}` before any registration / start / lifetime.
-* (note:  you can't just replace `record` because it's a `heritage` frozen object key)
+* `yourstudy._watchfn = function(topic,subject){}` before any registration / start / lifetime.
+* (note:  you can't just replace `watch` because it's a `heritage` frozen object key)
 
 How can I notify people on start / stop / comletion / upload?
 
@@ -387,8 +394,8 @@ Glossary
   - [nsIObserverService]https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIObserverService
   - [Partial List of Firefox Global Topics]https://developer.mozilla.org/en-US/docs/Observer_Notifications
 * `observe` / `notify`:  Global `observerService` terms.
-* `watch` / `unwatch`:  `Micropilot` listens to `observer` for `topics`
-* `record`: attempt to write data to the `IndexedDb`
+* `watch` / `unwatch`:  `Micropilot` listens to `observer` for `topics`, (fancifies them)[https://github.com/gregglind/micropilot/issues/5]
+* `record`: attempt to write data (undecorated, as is!) to the `IndexedDb`
 * `event`:  in Micropilot, any `JSON.stringify`-able object.  Used broadly for "a thing of human interest that happened", not in the strict JS sense.
 
 Other Gory Details and Sharp Edges:
