@@ -42,7 +42,7 @@ test:  cover
 docs:
 	# needs prep to set up right, alas.
 	cd $(TOP) &&\
-	./node_modules/dox/bin/dox < lib/micropilot.js  | ./node_modules/dox-template/bin/dox-template  -n Micropilot -r "0.3"  > gh-pages/index.html
+	./node_modules/dox/bin/dox < lib/micropilot.js  | ./node_modules/dox-template/bin/dox-template  -n Micropilot -r "0.4"  > gh-pages/index.html
 
 testmobile:  cover
 	cd $(TOP) &&\
