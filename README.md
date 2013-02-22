@@ -1,7 +1,7 @@
 Micropilot
 ==============
 
-Record user events directly in your Firefox addon with a one-file event observation, recording, and upload module.
+Record user events directly in your Firefox addon with a volo/submodule-installable event observation, recording, and upload module.
 
 Data operations are asynchronous, and use [promise-style apis](https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/core/promise.html).
 
@@ -36,6 +36,25 @@ monitor_tabopen.lifetime(86400*1000).then(function(mon){mon.ezupload()});
 if (user_tells_us_to_stop_snooping){
   monitor_tabopen.stop();
 }
+```
+
+Install
+--------------
+
+```
+  npm install -g volo
+
+  mkdir myaddon
+  cd myaddon
+  cfx init # the addon
+  mkdir packages
+  # augment package.json -> "dependencies" ["micropilot"]
+
+  volo add micropilot packages/micropilot  # or git submodule
+
+  # edit lib/main.js
+  require("simple-prefs").prefs["micropilotlog"] = true;
+  let mtp=require('micropilot').Micropilot("astudy").start().record({a:1}).then(console.log)
 ```
 
 
