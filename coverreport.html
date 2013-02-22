@@ -9,7 +9,7 @@
 	.pass .count { background: #BFFFBF;}	.error .count { background: #F8D5D8; color: red}</style>
 </head>
 <body>
-<h1>lib/micropilot.js (95%)</h1>
+<h1>lib/micropilot.js (93%)</h1>
 
 <pre>/*! vim:set ts=2 sw=2 sts=2 expandtab */
 /*! This Source Code Form is subject to the terms of the Mozilla Public
@@ -73,7 +73,6 @@
   }
 };
 </span>
-
 /** Return first-successful reqiured module from a list of paths
  *
  * @return {object} required module
@@ -97,14 +96,26 @@
 </span>}<span class="pass" data-count="1"><span class="count">1</span>;</span>
 </span>
 
+/**! list of okay statuses */
+<span class="pass" data-count="1"><span class="count">1</span>const GOODSTATUS = {
+  //"O": 0,
+  "200": 200,
+  "201": 201,
+  "202": 202,
+  "203": 203,
+  "204": 204
+}
+
+
+
 /*! this gets them into the xpi tarball, if they are present
   Don't use the comment/regex trick because comments don't go
   through to covered code :/
 */
-<span class="pass" data-count="1"><span class="count">1</span>try {
+<span class="pass" data-count="1"><span class="count">1</span>t</span>ry {
   <span class="pass" data-count="1"><span class="count">1</span>require("indexed-db");
 </span>  <span class="pass" data-count="1"><span class="count">1</span>require("./indexed-db-17");
-</span>} catch (e){}<span class="pass" data-count="1"><span class="count">1</span>;</span>
+</span>} catch (e){}
 </span>
 /*!*/
 <span class="pass" data-count="1"><span class="count">1</span>const xulApp = require('sdk/system/xul-app');
@@ -134,7 +145,7 @@
  * @name uu
  */
 <span class="pass" data-count="1"><span class="count">1</span>let uu = exports.uu = function(){
-        <span class="pass" data-count="18"><span class="count">18</span>return uuid().number.slice(1,-1)
+        <span class="pass" data-count="21"><span class="count">21</span>return uuid().number.slice(1,-1)
 }</span>;
 </span>
 /** Upload url
@@ -142,7 +153,7 @@
   * @memberOf main
   * @name UPLOAD_URL
   */
-<span class="pass" data-count="1"><span class="count">1</span>let UPLOAD_URL = exports.UPLOAD_URL = "https://testpilot.mozillalabs.com/submit/";
+<span class="pass" data-count="1"><span class="count">1</span>let UPLOAD_URL = exports.UPLOAD_URL = "https://testpilot.mozillalabs.com/submit/testpilot_micropilot_";
 </span>
 /**!*/
 // Warning: micropilot steals the simple store 'micropilot' key by name
@@ -174,8 +185,8 @@
     * @name initialize
     */
   initialize: function(collection,keyname){
-    <span class="pass" data-count="14"><span class="count">14</span>this.collection = collection;
-</span>    <span class="pass" data-count="14"><span class="count">14</span>this.keyname = keyname || "eventstoreid";
+    <span class="pass" data-count="17"><span class="count">17</span>this.collection = collection;
+</span>    <span class="pass" data-count="17"><span class="count">17</span>this.keyname = keyname || "eventstoreid";
 </span>  },
   type: "EventStore",
   /** promise a indexedDB connection to `"micropilot-"+this.collection`.
@@ -191,20 +202,20 @@
     * @return promise
     */
   db: function(){
-    <span class="pass" data-count="1022"><span class="count">1022</span>let that = this;
-</span>    <span class="pass" data-count="1022"><span class="count">1022</span>let {promise, resolve} = defer();
+    <span class="pass" data-count="1024"><span class="count">1024</span>let that = this;
+</span>    <span class="pass" data-count="1024"><span class="count">1024</span>let {promise, resolve} = defer();
 </span>    // TODO each EventStore has different Db, so the createObjectStore will work.  Is this gross?
-    <span class="pass" data-count="1022"><span class="count">1022</span>let request = indexedDB.open("micropilot-"+that.collection,1);
-</span>    <span class="pass" data-count="1022"><span class="count">1022</span>request.onerror = requestError;
-</span>    <span class="pass" data-count="1022"><span class="count">1022</span>request.onupgradeneeded = function (event) {
-      <span class="pass" data-count="9"><span class="count">9</span>let objectStore = request.result.createObjectStore(that.collection,
+    <span class="pass" data-count="1024"><span class="count">1024</span>let request = indexedDB.open("micropilot-"+that.collection,1);
+</span>    <span class="pass" data-count="1024"><span class="count">1024</span>request.onerror = requestError;
+</span>    <span class="pass" data-count="1024"><span class="count">1024</span>request.onupgradeneeded = function (event) {
+      <span class="pass" data-count="10"><span class="count">10</span>let objectStore = request.result.createObjectStore(that.collection,
         {keyPath: that.keyname, autoIncrement: true });
 </span>    };
 </span>    // called after onupgradeneeded
-    <span class="pass" data-count="1022"><span class="count">1022</span>request.onsuccess = function(event) {
-      <span class="pass" data-count="1022"><span class="count">1022</span>resolve(request.result);
+    <span class="pass" data-count="1024"><span class="count">1024</span>request.onsuccess = function(event) {
+      <span class="pass" data-count="1024"><span class="count">1024</span>resolve(request.result);
 </span>    };
-</span>    <span class="pass" data-count="1022"><span class="count">1022</span>return promise
+</span>    <span class="pass" data-count="1024"><span class="count">1024</span>return promise
   }</span>,
   /** promises to add data to the autoincrementing objectStore.
     *
@@ -217,18 +228,18 @@
     * @return promise
     */
   add: function(data){
-    <span class="pass" data-count="1008"><span class="count">1008</span>let that = this;
-</span>    <span class="pass" data-count="1008"><span class="count">1008</span>let {promise, resolve} = defer();
-</span>    <span class="pass" data-count="1008"><span class="count">1008</span>this.db().then(function(db){
-      <span class="pass" data-count="1008"><span class="count">1008</span>let request = db.transaction([that.collection], "readwrite").
+    <span class="pass" data-count="1009"><span class="count">1009</span>let that = this;
+</span>    <span class="pass" data-count="1009"><span class="count">1009</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="1009"><span class="count">1009</span>this.db().then(function(db){
+      <span class="pass" data-count="1009"><span class="count">1009</span>let request = db.transaction([that.collection], "readwrite").
         objectStore(that.collection).add(data);
-</span>      <span class="pass" data-count="1008"><span class="count">1008</span>request.onsuccess = function (evt) {
-        <span class="pass" data-count="1008"><span class="count">1008</span>let newkey = evt.target.result;
-</span>        <span class="pass" data-count="1008"><span class="count">1008</span>resolve({id: newkey, data:data});
+</span>      <span class="pass" data-count="1009"><span class="count">1009</span>request.onsuccess = function (evt) {
+        <span class="pass" data-count="1009"><span class="count">1009</span>let newkey = evt.target.result;
+</span>        <span class="pass" data-count="1009"><span class="count">1009</span>resolve({id: newkey, data:data});
 </span>      };
-</span>      <span class="pass" data-count="1008"><span class="count">1008</span>request.onerror = requestError;
+</span>      <span class="pass" data-count="1009"><span class="count">1009</span>request.onerror = requestError;
 </span>    })
-    <span class="pass" data-count="1008"><span class="count">1008</span>r</span>eturn promise
+    <span class="pass" data-count="1009"><span class="count">1009</span>r</span>eturn promise
   }</span>,
   /** promise all data from the collection (async).
     *
@@ -243,24 +254,24 @@
     */
   getAll: function(){
     // using getAll() doesn't seem to work, and isn't cross-platform
-    <span class="pass" data-count="14"><span class="count">14</span>let {promise, resolve} = defer();
-</span>    <span class="pass" data-count="14"><span class="count">14</span>let that = this;
-</span>    <span class="pass" data-count="14"><span class="count">14</span>this.db().then(function(db){
-      <span class="pass" data-count="14"><span class="count">14</span>let data = [];
-</span>      <span class="pass" data-count="14"><span class="count">14</span>let req = db.transaction([that.collection], "readonly").objectStore(that.collection).openCursor()
-      <span class="pass" data-count="14"><span class="count">14</span>r</span>eq.onsuccess = function(event) {
-        <span class="pass" data-count="1025"><span class="count">1025</span>let cursor = event.target.result;
-</span>        <span class="pass" data-count="1025"><span class="count">1025</span>if (cursor) {
-          <span class="pass" data-count="1011"><span class="count">1011</span>data.push(cursor.value);
-</span>          <span class="pass" data-count="1011"><span class="count">1011</span>cursor.continue();
+    <span class="pass" data-count="15"><span class="count">15</span>let {promise, resolve} = defer();
+</span>    <span class="pass" data-count="15"><span class="count">15</span>let that = this;
+</span>    <span class="pass" data-count="15"><span class="count">15</span>this.db().then(function(db){
+      <span class="pass" data-count="15"><span class="count">15</span>let data = [];
+</span>      <span class="pass" data-count="15"><span class="count">15</span>let req = db.transaction([that.collection], "readonly").objectStore(that.collection).openCursor()
+      <span class="pass" data-count="15"><span class="count">15</span>r</span>eq.onsuccess = function(event) {
+        <span class="pass" data-count="1027"><span class="count">1027</span>let cursor = event.target.result;
+</span>        <span class="pass" data-count="1027"><span class="count">1027</span>if (cursor) {
+          <span class="pass" data-count="1012"><span class="count">1012</span>data.push(cursor.value);
+</span>          <span class="pass" data-count="1012"><span class="count">1012</span>cursor.continue();
 </span>        }
         else {
-          <span class="pass" data-count="14"><span class="count">14</span>resolve(data);
+          <span class="pass" data-count="15"><span class="count">15</span>resolve(data);
 </span>        }
 </span>      };
-</span>      <span class="pass" data-count="14"><span class="count">14</span>req.onerror = requestError;
+</span>      <span class="pass" data-count="15"><span class="count">15</span>req.onerror = requestError;
 </span>    })
-    <span class="pass" data-count="14"><span class="count">14</span>r</span>eturn promise;
+    <span class="pass" data-count="15"><span class="count">15</span>r</span>eturn promise;
 </span>  },
   /** promise to drop the database.
     *
@@ -312,16 +323,16 @@
     */
   initialize: function(studyid){
       // setup the indexdb
-      <span class="pass" data-count="12"><span class="count">12</span>this.studyid = studyid;
-</span>      <span class="pass" data-count="12"><span class="count">12</span>this._watched = {};
-</span>      <span class="pass" data-count="12"><span class="count">12</span>this.eventstore = EventStore(this.studyid);
-</span>      <span class="pass" data-count="12"><span class="count">12</span>this._config = storage.micropilot[studyid]; </span>// persists
-      <span class="pass" data-count="12"><span class="count">12</span>if (this._config === undefined) {
-        <span class="pass" data-count="12"><span class="count">12</span>this._config = {};
-</span>        <span class="pass" data-count="12"><span class="count">12</span>this._config.personid = uu();
+      <span class="pass" data-count="15"><span class="count">15</span>this.studyid = studyid;
+</span>      <span class="pass" data-count="15"><span class="count">15</span>this._watched = {};
+</span>      <span class="pass" data-count="15"><span class="count">15</span>this.eventstore = EventStore(this.studyid);
+</span>      <span class="pass" data-count="15"><span class="count">15</span>this._config = storage.micropilot[studyid]; </span>// persists
+      <span class="pass" data-count="15"><span class="count">15</span>if (this._config === undefined) {
+        <span class="pass" data-count="15"><span class="count">15</span>this._config = {};
+</span>        <span class="pass" data-count="15"><span class="count">15</span>this._config.personid = uu();
 </span>      }
-</span>      <span class="pass" data-count="12"><span class="count">12</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
-      <span class="pass" data-count="12"><span class="count">12</span>this.willrecord = false; </span>// won't record.
+</span>      <span class="pass" data-count="15"><span class="count">15</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
+      <span class="pass" data-count="15"><span class="count">15</span>this.willrecord = false; </span>// won't record.
   },
   type: 'Micropilot',
 
@@ -366,12 +377,12 @@
     */
   record: function(data){
     // remember, `resolve` turns values into promises, and is noop on promises
-    <span class="pass" data-count="11"><span class="count">11</span>if (! this.willrecord) return resolve(undefined);
+    <span class="pass" data-count="12"><span class="count">12</span>if (! this.willrecord) return resolve(undefined);
 </span>
     // todo, what if it's not jsonable?
-    <span class="pass" data-count="5"><span class="count">5</span>JSON.stringify(data);
-</span>    <span class="pass" data-count="5"><span class="count">5</span>myprefs.logtoconsole && console.log("willrecord:", JSON.stringify(data));
-</span>    <span class="pass" data-count="5"><span class="count">5</span>return resolve(this.eventstore.add(data));
+    <span class="pass" data-count="6"><span class="count">6</span>JSON.stringify(data);
+</span>    <span class="pass" data-count="6"><span class="count">6</span>myprefs.micropilotlog && console.log("micropilot-record:", JSON.stringify(data));
+</span>    <span class="pass" data-count="6"><span class="count">6</span>return resolve(this.eventstore.add(data));
 </span>  },
 
   /** promise the study (setting a Fuse)
@@ -397,15 +408,15 @@
     *
     */
   lifetime:  function(duration){
-    <span class="pass" data-count="5"><span class="count">5</span>this.stop();
-</span>    <span class="pass" data-count="5"><span class="count">5</span>this.willrecord = true; </span>// restart!
-    <span class="pass" data-count="5"><span class="count">5</span>let deferred = defer();
-</span>    <span class="pass" data-count="5"><span class="count">5</span>let that = this;
+    <span class="pass" data-count="6"><span class="count">6</span>this.stop();
+</span>    <span class="pass" data-count="6"><span class="count">6</span>this.willrecord = true; </span>// restart!
+    <span class="pass" data-count="6"><span class="count">6</span>let deferred = defer();
+</span>    <span class="pass" data-count="6"><span class="count">6</span>let that = this;
 </span>    // iff!
-    <span class="pass" data-count="5"><span class="count">5</span>if (duration){
+    <span class="pass" data-count="6"><span class="count">6</span>if (duration){
       // should this allow / mix all fuse options?
-      <span class="pass" data-count="4"><span class="count">4</span>this.fuse = Fuse({start: this.startdate,duration:duration});
-</span>      <span class="pass" data-count="4"><span class="count">4</span>return this.fuse;
+      <span class="pass" data-count="5"><span class="count">5</span>this.fuse = Fuse({start: this.startdate,duration:duration, resolve_this: that});
+</span>      <span class="pass" data-count="5"><span class="count">5</span>return this.fuse;
 </span>    } else {
       // no duration, so infinite, so nothing to resolve.
     }
@@ -420,8 +431,8 @@
     * @name start
     */
   start:  function(){
-    <span class="pass" data-count="5"><span class="count">5</span>this.willrecord = true;
-</span>    <span class="pass" data-count="5"><span class="count">5</span>return this;
+    <span class="pass" data-count="7"><span class="count">7</span>this.willrecord = true;
+</span>    <span class="pass" data-count="7"><span class="count">7</span>return this;
 </span>  },
   /** stop the study (unset the fuse, `this.willrecord` -> `false`)
     *
@@ -433,10 +444,10 @@
     * @name stop
     */
   stop:  function(){
-    <span class="pass" data-count="13"><span class="count">13</span>this.willrecord = false;
-</span>    <span class="pass" data-count="13"><span class="count">13</span>this.fuse !== undefined && this.fuse.stop();
-</span>    <span class="pass" data-count="13"><span class="count">13</span>delete this.fuse;
-</span>    <span class="pass" data-count="13"><span class="count">13</span>return this;
+    <span class="pass" data-count="15"><span class="count">15</span>this.willrecord = false;
+</span>    <span class="pass" data-count="15"><span class="count">15</span>this.fuse !== undefined && this.fuse.stop();
+</span>    <span class="pass" data-count="15"><span class="count">15</span>delete this.fuse;
+</span>    <span class="pass" data-count="15"><span class="count">15</span>return this;
 </span>  },
 
   /** (internal) watch a topic, add to `observer-service`
@@ -447,12 +458,17 @@
    * @return undefined
    */
   _watch: function(topic){
-    <span class="pass" data-count="9"><span class="count">9</span>if (this._watched[topic]) return
+    <span class="pass" data-count="11"><span class="count">11</span>if (this._watched[topic]) return
 </span>
-    <span class="pass" data-count="9"><span class="count">9</span>let that = this;
-</span>    <span class="pass" data-count="9"><span class="count">9</span>let cb = this._watchfn || function(subject) {<span class="pass" data-count="1"><span class="count">1</span>that.record(subject)}</span>;
-</span>    <span class="pass" data-count="9"><span class="count">9</span>let o = observer.add(topic,cb); </span>// add to global watch list
-    <span class="pass" data-count="9"><span class="count">9</span>this._watched[topic] = cb;
+    <span class="pass" data-count="11"><span class="count">11</span>let that = this;
+</span>    <span class="pass" data-count="11"><span class="count">11</span>let cb;
+</span>    <span class="pass" data-count="11"><span class="count">11</span>if (this._watchfn !== undefined){
+      <span class="pass" data-count="5"><span class="count">5</span>cb = function(subject) that._watchfn.call(that,topic,subject);
+</span>    } else {
+      <span class="pass" data-count="6"><span class="count">6</span>cb = function(subject) {<span class="pass" data-count="2"><span class="count">2</span>that.record({"msg":topic,ts:Date.now(),"data":subject})}</span>;
+</span>    }
+</span>    <span class="pass" data-count="11"><span class="count">11</span>let o = observer.add(topic,cb); </span>// add to global watch list
+    <span class="pass" data-count="11"><span class="count">11</span>this._watched[topic] = cb;
 </span>  },
 
   /** add topics to watch (non-destructive)
@@ -463,9 +479,9 @@
     * @name watch
     */
   watch: function(watch_list){
-      <span class="pass" data-count="6"><span class="count">6</span>let that = this;
-</span>      <span class="pass" data-count="6"><span class="count">6</span>watch_list.forEach(function(t) that._watch(t))
-      <span class="pass" data-count="6"><span class="count">6</span>r</span>eturn this;
+      <span class="pass" data-count="8"><span class="count">8</span>let that = this;
+</span>      <span class="pass" data-count="8"><span class="count">8</span>watch_list.forEach(function(t) that._watch(t))
+      <span class="pass" data-count="8"><span class="count">8</span>r</span>eturn this;
 </span>  },
 
   /** (internal) stop watching topic
@@ -474,9 +490,9 @@
     * @return undefined
     */
   _unwatch: function(topic){
-    <span class="pass" data-count="7"><span class="count">7</span>let cb = this._watched[topic];
-</span>    <span class="pass" data-count="7"><span class="count">7</span>cb && observer.remove(topic,cb);
-</span>    <span class="pass" data-count="7"><span class="count">7</span>delete this._watched[topic];
+    <span class="pass" data-count="9"><span class="count">9</span>let cb = this._watched[topic];
+</span>    <span class="pass" data-count="9"><span class="count">9</span>cb && observer.remove(topic,cb);
+</span>    <span class="pass" data-count="9"><span class="count">9</span>delete this._watched[topic];
 </span>  },
 
   /** unwatch some topics (destructive)
@@ -488,10 +504,10 @@
     * @return {micropilot} this
     */
   unwatch: function(unwatch_list){
-    <span class="pass" data-count="4"><span class="count">4</span>if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
-</span>    <span class="pass" data-count="4"><span class="count">4</span>unwatch_list.forEach(function(t) that._unwatch(t));
-</span>    <span class="pass" data-count="4"><span class="count">4</span>return this;
+    <span class="pass" data-count="6"><span class="count">6</span>if (unwatch_list === undefined) unwatch_list = Object.keys(this._watched);
+</span>    <span class="pass" data-count="6"><span class="count">6</span>let that = this;
+</span>    <span class="pass" data-count="6"><span class="count">6</span>unwatch_list.forEach(function(t) that._unwatch(t));
+</span>    <span class="pass" data-count="6"><span class="count">6</span>return this;
 </span>  },
   /** promise simplified upload with strong opinions and retry semantics
     *
@@ -523,8 +539,10 @@
     <span class="pass" data-count="1"><span class="count">1</span>let { promise, resolve } = defer();
 </span>    <span class="pass" data-count="1"><span class="count">1</span>let {url,maxtries,interval,killaddon:killpref} = options;
 </span>    <span class="pass" data-count="1"><span class="count">1</span>let that = this;
-</span>    <span class="pass" data-count="1"><span class="count">1</span>url = url || UPLOAD_URL + mtp.studyname;
-</span>    <span class="pass" data-count="1"><span class="count">1</span>maxtries = maxtries || 3
+</span>    <span class="pass" data-count="1"><span class="count">1</span>url = url || (UPLOAD_URL + that.studyid);
+</span>    <span class="pass" data-count="1"><span class="count">1</span>myprefs.micropilotlog && console.log("micropilot-ezupload:",url );
+</span>
+    <span class="pass" data-count="1"><span class="count">1</span>maxtries = maxtries || 3
     <span class="pass" data-count="1"><span class="count">1</span>i</span>nterval = interval || 60 * 60 * 1000; </span>// 60 minutes
 
     <span class="pass" data-count="1"><span class="count">1</span>let mycleanup = function(){
@@ -532,7 +550,8 @@
         <span class="pass" data-count="1"><span class="count">1</span>let p = that.stop();
 </span>        <span class="pass" data-count="1"><span class="count">1</span>p = that.clear();
 </span>        <span class="pass" data-count="1"><span class="count">1</span>if (killpref) {
-          <span class="error" data-count="0"><span class="count">0</span>resolve(p.then(killaddon)); </span>  // stop the study, clear the data, uninstall the addon.
+          <span class="error" data-count="0"><span class="count">0</span>console.log("micropilot: killpref on!")
+          <span class="error" data-count="0"><span class="count">0</span>r</span>esolve(p.then(killaddon)); </span>  // stop the study, clear the data, uninstall the addon.
         } else {
           <span class="pass" data-count="1"><span class="count">1</span>resolve(p)
         }</span>
@@ -544,10 +563,12 @@
       <span class="pass" data-count="3"><span class="count">3</span>that._config.uploadcounter += 1;
 </span>
       <span class="pass" data-count="3"><span class="count">3</span>that.upload(url).then(function(response){
-        <span class="pass" data-count="3"><span class="count">3</span>if (response.status != "200") {  // try again in interval ms
-          <span class="pass" data-count="3"><span class="count">3</span>require('timers').setTimeout(function(){<span class="pass" data-count="3"><span class="count">3</span>myupload()}</span>, interval)
+        <span class="pass" data-count="3"><span class="count">3</span>if (! GOODSTATUS[response.status]) {  // try again in interval ms
+          <span class="pass" data-count="3"><span class="count">3</span>myprefs.micropilotlog && console.log("micropilot-response-bad:", response.status, "retrying in:", interval );
+</span>          <span class="pass" data-count="3"><span class="count">3</span>require('timers').setTimeout(function(){<span class="pass" data-count="3"><span class="count">3</span>myupload()}</span>, interval)
         }</span> else {
-          <span class="error" data-count="0"><span class="count">0</span>resolve(mycleanup());
+          <span class="error" data-count="0"><span class="count">0</span>myprefs.micropilotlog && console.log("micropilot-ezupload-success")
+          <span class="error" data-count="0"><span class="count">0</span>m</span>ycleanup();
 </span>        }
 </span>      })
     }</span>
@@ -580,17 +601,22 @@
 </span>    <span class="pass" data-count="7"><span class="count">7</span>let { promise, resolve } = defer();
 </span>    <span class="pass" data-count="7"><span class="count">7</span>let uploadid = options.uploadid || uu(); </span>// specific to the upload
     <span class="pass" data-count="7"><span class="count">7</span>this.data().then(function(data){
-      <span class="pass" data-count="7"><span class="count">7</span>let payload = {events:data};
+      <span class="pass" data-count="7"><span class="count">7</span>myprefs.micropilotlog && console.log("micropilot-willupload-data:", JSON.stringify(data));
+</span>      <span class="pass" data-count="7"><span class="count">7</span>let payload = {events:data};
 </span>      <span class="pass" data-count="7"><span class="count">7</span>payload.userdata = snoop();
 </span>      <span class="pass" data-count="7"><span class="count">7</span>payload.ts = Date.now();
 </span>      <span class="pass" data-count="7"><span class="count">7</span>payload.uploadid = uploadid;
 </span>      <span class="pass" data-count="7"><span class="count">7</span>payload.personid = that._config.personid;
-</span>      <span class="pass" data-count="7"><span class="count">7</span>let R = Request({
+</span>      <span class="pass" data-count="7"><span class="count">7</span>myprefs.micropilotlog && console.log("micropilot-willupload-content:", JSON.stringify(payload));
+</span>
+      <span class="pass" data-count="7"><span class="count">7</span>let R = Request({
         url: url,
         content: payload,
         contentType: "application/json",
         onComplete: function (response) {
-          <span class="pass" data-count="4"><span class="count">4</span>resolve(response) }</span>
+          <span class="pass" data-count="4"><span class="count">4</span>myprefs.micropilotlog && console.log("micropilot-upload-response:",response.status);
+</span>          <span class="pass" data-count="4"><span class="count">4</span>myprefs.micropilotlog && console.log("micropilot-upload-response:",response.text);
+</span>          <span class="pass" data-count="4"><span class="count">4</span>resolve(response) }</span>,
       });
 </span>      <span class="pass" data-count="7"><span class="count">7</span>if (simulate) {
         <span class="pass" data-count="3"><span class="count">3</span>resolve(R);
@@ -641,7 +667,7 @@
     * - `start`:  start time for the fuse
     * - `duration`: how long to run.
     * - `pulseinterval`:  if defined, use a `setInterval` timer (see below)
-    * - `resolve_this`:  the `this` passed into the `then` during resolution
+    * - `resolve_this`:  the `this` passed into the `then` during resolution (default undefined)
     * - `pulsefn`:  if `setInterval` timer, run this function during every `pulse`
     *
     * `setInterval` vs. `setTimeout`:  Fuse is normally a `setTimeout`.  If you
@@ -675,40 +701,42 @@
     * @name initialize
     */
   initialize: function(options){
-    <span class="pass" data-count="7"><span class="count">7</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>if (resolve_this === undefined) resolve_this = this;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>this.pulseinterval =  pulseinterval;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>let that = this;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>this.start = start;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>this.duration = duration;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>let { promise, resolve } = defer();
-</span>    <span class="pass" data-count="7"><span class="count">7</span>this.promise = promise;
-</span>    <span class="pass" data-count="7"><span class="count">7</span>this.resolve = resolve;
+    <span class="pass" data-count="9"><span class="count">9</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.pulseinterval =  pulseinterval;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>let that = this;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.start = start;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.duration = duration;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.promise = promise;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.resolve = resolve;
 </span>    // should this be setInterval, or setTimeout?
     // setInterval allows one to modify the fuse while running
     // more easily, but setTimeout is much more precise.
-    <span class="pass" data-count="7"><span class="count">7</span>if (pulseinterval){
+    <span class="pass" data-count="9"><span class="count">9</span>if (pulseinterval){
       <span class="pass" data-count="2"><span class="count">2</span>this.timerid = timers.setInterval(function(){
-        <span class="pass" data-count="12"><span class="count">12</span>that.checking = true;
+        <span class="pass" data-count="12"><span class="count">12</span>if (that.checking) {
+          <span class="error" data-count="0"><span class="count">0</span>return; </span> // prevent races
+        }
+</span>        <span class="pass" data-count="12"><span class="count">12</span>that.checking = true;
 </span>        <span class="pass" data-count="12"><span class="count">12</span>if (pulsefn) {<span class="pass" data-count="11"><span class="count">11</span>pulsefn(that)}</span>
 </span>        <span class="pass" data-count="12"><span class="count">12</span>if (! duration) return;
 </span>        <span class="pass" data-count="12"><span class="count">12</span>if (Date.now() >= (that.start + that.duration)){
-          <span class="pass" data-count="1"><span class="count">1</span>that.resolve(that.resolve_this);
+          <span class="pass" data-count="1"><span class="count">1</span>that.resolve(resolve_this);
 </span>          <span class="pass" data-count="1"><span class="count">1</span>that.stop();
 </span>        }
 </span>        <span class="pass" data-count="12"><span class="count">12</span>that.checking=false;
 </span>      },pulseinterval);
 </span>    } else {
       // TODO, what is setTimeout on a negative?
-      <span class="pass" data-count="5"><span class="count">5</span>that.checking=false;
-</span>      <span class="pass" data-count="5"><span class="count">5</span>let timerunningsofar = (Date.now() - this.start);
-</span>      <span class="pass" data-count="5"><span class="count">5</span>if (duration <= timerunningsofar) { // really short intervals
-        <span class="pass" data-count="1"><span class="count">1</span>this.resolve(resolve_this);
-</span>        <span class="pass" data-count="1"><span class="count">1</span>this.stop();
+      <span class="pass" data-count="7"><span class="count">7</span>that.checking=false;
+</span>      <span class="pass" data-count="7"><span class="count">7</span>let timerunningsofar = (Date.now() - this.start);
+</span>      <span class="pass" data-count="7"><span class="count">7</span>if (duration <= timerunningsofar) { // really short intervals
+        <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
+</span>        <span class="pass" data-count="2"><span class="count">2</span>this.stop();
 </span>      } else {
-        <span class="pass" data-count="4"><span class="count">4</span>this.timerid = timers.setTimeout(function(){
-          <span class="pass" data-count="1"><span class="count">1</span>that.resolve(that.resolve_this);
-</span>          <span class="pass" data-count="1"><span class="count">1</span>that.stop();
+        <span class="pass" data-count="5"><span class="count">5</span>this.timerid = timers.setTimeout(function(){
+          <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
+</span>          <span class="pass" data-count="2"><span class="count">2</span>that.stop();
 </span>        }, duration - timerunningsofar);
 </span>      }
 </span>    }
@@ -729,8 +757,10 @@
     * @name stop
     */
   stop: function(){
-    <span class="pass" data-count="7"><span class="count">7</span>if (this.timerid) timers.clearTimeout(this.timerid);
-</span>    <span class="pass" data-count="7"><span class="count">7</span>return this;
+    <span class="pass" data-count="9"><span class="count">9</span>if (this.timerid) {
+      <span class="pass" data-count="7"><span class="count">7</span>timers.clearTimeout(this.timerid);
+</span>    }
+</span>    <span class="pass" data-count="9"><span class="count">9</span>return this;
 </span>  }
 });
 </span>
@@ -742,6 +772,7 @@
   */
 <span class="pass" data-count="1"><span class="count">1</span>let killaddon = exports.killaddon = function(){
   <span class="error" data-count="0"><span class="count">0</span>let id = require('self').id;
+</span>  <span class="error" data-count="0"><span class="count">0</span>console.log("attempting to remove addon:", id);
 </span>  <span class="error" data-count="0"><span class="count">0</span>require("sdk/addon/installer").uninstall(id);
 </span>}
 </pre><h1>lib/indexed-db-17.js (91%)</h1>
