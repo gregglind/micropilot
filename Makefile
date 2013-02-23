@@ -4,22 +4,31 @@
 
 #  Makefile for Test Pilot 2
 
-VERSION=0.5
+VERSION ?= $(shell python -c "import json;print json.load(open('package.json'))['version']")
 TOP ?= $(shell pwd)
 FOX=Aurora
 
 # see http://stackoverflow.com/questions/649246/is-it-possible-to-create-a-multi-line-string-variable-in-a-makefile
 define HELPDOC
 
-  cover     -
-  test      - FOX=Aurora, "", 17, etc.  (osx bundle name)
-  docs      -
+  test      - run tests with `covered` files.
+              use `cfx test` if you want no-coverage.
+              options:
+                OPTS="-v -f test-"        (options for cfx text)
+                FOX=Aurora, "", 17, etc.  (osx bundle name)
+  cover     - create `fakey` dir with covered files.
+  docs      - create coverage and api docs, place in `gh-pages`
+  version   - print micropilot version (according to `package.json`)
   help      - this help.
+
 
 Note:  some targets are in the make file, some stuff is in `cfx`
 
 endef
 export HELPDOC
+
+version:
+	@echo $(VERSION)
 
 help:
 	@echo "$$HELPDOC"
