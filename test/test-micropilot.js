@@ -196,9 +196,7 @@ exports['test clear clears data'] = function(assert, done){
   let mtp = Micropilot(uu());
   let group = promised(Array);
   let check = function(){
-    console.log("$ want to clear!")
     mtp.clear().then(function(result){
-      console.log("$ cleared!")
       mtp.data().then(function(data){
         if (data.length == 0){
           assert.pass();
@@ -229,9 +227,15 @@ exports['test lifetime resolves with the study'] = function(assert,done){
 
 /* snoop */
 
-exports['test snoop does something'] = function(assert){
-  assert.ok(JSON.stringify(snoop()));
-  // maybe assert has right keys?
+exports['test snoop does something'] = function(assert,done){
+  snoop().then(function(userdata){
+    try{
+      JSON.stringify(userdata);
+      good(assert,done)();
+    } catch (e) {
+      bad(assert,done)()
+    }
+  })
 }
 
 /* Tests for Fuse */
