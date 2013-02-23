@@ -1,9 +1,14 @@
 Micropilot
 ==============
 
-Record user events directly in your Firefox addon with a volo/submodule-installable event observation, recording, and upload module.
+Observe, record, and upload user events directly in your Firefox addon.
 
-Data operations are asynchronous, and use [promise-style apis](https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/core/promise.html).
+Philosophy
+
+* Data operations are asynchronous
+* Use [promise-style apis](https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/core/promise.html).
+* [volo](http://volojs.org/) / [git-submodule](http://blog.jacius.info/git-submodule-cheat-sheet/) installable
+* 100% code and test coverage.
 
 Examples
 ----------
@@ -87,6 +92,7 @@ Longer, Annotated Example, Demoing Api
 -----------------------------------------
 
 ```
+  let micropilot = require("micropilot");
   let monitor = require("micropilot").Micropilot('tabsmonitor');
   /* Effects:
     * Create IndexedDb:  youraddonid:micropilot-tabsmonitor
@@ -140,7 +146,7 @@ Longer, Annotated Example, Demoing Api
     console.log("`lifetime` or `stop` stops any previous fuses.");
     mtp.stop(); /* stop this study from recording*/
     mtp.upload(UPLOAD_URL).then(function(response){
-      if (response.status != 200){
+      if (! micropilot.GOODSTATUS[response.status]){
         console.error("what a bummer.")
       }
     })
@@ -178,11 +184,11 @@ Longer, Annotated Example, Demoing Api
 Supported Versions
 ----------------------
 
-Desktop Firefox 17+ is supported.  (16's IndexedDB is too different).  If you need Firefox 17 support, remember to copy `lib/indexed-db-17.js`.  18+ doesn't require this.
+Desktop Firefox 17+ is supported.  (16's IndexedDB is too different).  Firefox 17 needs`lib/indexed-db-17.js`.  18+ doesn't require this.
 
 Mobile Firefox 21+ is known to work.  Other versions are untested, but probably safe.
 
-Checking this is your responsibility.
+Verifying version compatability is your responsibility.
 
 ```
   if (require('sdk/system/xul-app').version < 17){
@@ -190,46 +196,45 @@ Checking this is your responsibility.
   }
 ```
 
-
 FAQ
 -----
 
-What are events?
+### What are events?
 
 * any jsonable (as claimed by `JSON.stringify`) object.
 
-What is a topic?
+### What is a topic?
 
 * just a string defining the 'message name' or 'message type'.
 * (convention comes from the [observer-service]https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/deprecated/observer-service.html)
 * you decide these for your own convenience.
 
 
-Watch vs. Record
+### Watch vs. Record
 
 * `watch` records {"msg": topic, "data": data, "ts": Date.now()}
 * `record` is unvarnished, "as is" recording.
 
-Why so much emphasis on the `observer-service`?
+### Why so much emphasis on the `observer-service`?
 
 * global message passing mechanism that crosses sandboxes (allows inter-addon communication)
 * robust and well-tested
 * many 'interesting' events are already being logged there.
 * (remember, you can `record` directly, if the monitor is in scope!)
 
-Timestamps on events?
+### Timestamps on events?
 
 * `record` - you need to timestamp your own events!
 * `watch` - will come in with the timestamp *at recording*.  This might be different than when the event actually originated.
 
 
-Run indefinitely / forever
+### Run indefinitely / forever
 
    `micropilot('yourid').lifetime()  // will never resolve.`
    `micropilot('yourid').start()  // will never resolve.`
 
 
-Wait before running / delay startup (for this restart)?
+### Wait before running / delay startup (for this restart)?
 
 * do it yourself... using `setTimeout` or `Fuse` like:
 
@@ -238,7 +243,7 @@ Wait before running / delay startup (for this restart)?
 	 function(){Micropilot('mystudy').start()} )
 ```
 
-Wait before running / delay startup (over restarts)?
+### Wait before running / delay startup (over restarts)?
 
 * do it yourself... using `setTimeout` or `Fuse` like:
 
@@ -249,13 +254,13 @@ Wait before running / delay startup (over restarts)?
    function(){ Micropilot('delayedstudy').start()} )
 ```
 
-Stop recording (messages arrive but aren't recorded)
+### Stop recording (messages arrive but aren't recorded)
 
 - `yourstudy.stop()`
 - `yourstudy.willrecord = false`
 
 
-Respect user privacy and private mode
+### Respect user privacy and private mode
 
 - Given the changes in `require("private-browsing")` at Firefox 20, this is really up to study authors to track themselves.  Ask @gregglind if you need help.
 - Be extra wary of `globalObserver` notifications, which might come from private windows.
@@ -264,23 +269,22 @@ Respect user privacy and private mode
   * global `isActive` disappears
   * per-window private mode starts
 
-
-Add more topics (channels), or remove them:
+### Add more topics (channels), or remove them:
 
 ```
   yourstudy.watch(more_topics_list)
   yourstudy.unwatch(topics_list)
 ```
 
-Remove all topics
+### Remove all topics
 
   `yourstudy.unwatch()`
 
-Just record some event without setting up a topic:
+### Just record some event without setting up a topic:
 
   `yourstudy.record(data)`
 
-See / log all recording events in the console
+### See / log all recording events in the console
 
 - set these two prefs (issue report)[https://github.com/gregglind/micropilot/issues/6]
 
@@ -289,25 +293,25 @@ See / log all recording events in the console
   require("simple-prefs").prefs["sdk.console.logLevel"] = 0
 ```
 
-Stop the callback in `lifetime(duration).then()`... (unlight the Fuse!)
+### Stop the callback in `lifetime(duration).then()`... (unlight the Fuse!)
 
   `yourstudy.stop();`
 
-Why have a `studyid`?
+### Why have a `studyid`?
 
 * used as `IndexedDb` collection name.
 * used for the 'start time' persistent storage key, to persist between runs.
 
-Fusssing with internals:
+### Fusssing with internals:
 
 * `id`:  don't change this
 
-Do studies persist after Firefox shutdown / restart?
+### Do studies persist after Firefox shutdown / restart?
 
-* Yes, in that the start time is recorded using `simple-storeage`, ensuring that the duration is 'total duration'.  In other words `lifetime(duration=many_ms)` will Do The Right Thing.
-* Data persists between runs.
+* Yes, in that the start time is recorded using `simple-storage`, ensuring that the duration is 'total duration'.  In other words `lifetime(duration=many_ms)` will Do The Right Thing.
+* Data persists between runs (in the IndexedDb)
 
-How do I clean up my mess?
+### How do I clean up my mess?
 
 ```
   Micropilot('studyname').lifetime(duration).then(function(mtp){
@@ -320,17 +324,17 @@ How do I clean up my mess?
   })
 ```
 
-I don't want to actually record / I want to do something else on observation.
+### I don't want to actually record / I want to do something else on observation.
 
 * `yourstudy._watchfn = function(topic,subject){}` before any registration / start / lifetime.
 * (note:  you can't just replace `watch` because it's a `heritage` frozen object key)
 
-How can I notify people on start / stop / comletion / upload?
+### How can I notify people on start / stop / comletion / upload?
 
 * Write your own
 * use Test Pilot 2, or similar.
 
-How do uploads work?
+### How do uploads work?
 
 * snoops some user data, and all recorded events
 * to `url`.  returns promise on response.
@@ -343,7 +347,7 @@ How do uploads work?
     function(response){ /* check response, retry using Fuse, etc. */ })
 ```
 
-My `startdate` is wrong
+### My `startdate` is wrong
 
 ```
   // will stop the study run callback, if it exists
@@ -351,7 +355,7 @@ My `startdate` is wrong
   mystudy.lifetime(newduration).then(callback)
 ```
 
-Recurring upload of data?
+### Recurring upload of data?
 
 ```
   let {storage} = require("simple-storage");
@@ -365,13 +369,13 @@ Recurring upload of data?
     })
 ```
 
-How well does it perform / scale?
+### How well does it perform / scale?
 
 * on mobile it has been measured to write 40 events/sec.
 * on desktop (OSX) it has been measured at 120-240 events/sec.
 * Plan for 10, and you will probably be happier.
 
-Use With Existing Test Pilot 1?
+### Use With Existing Test Pilot 1?
 
 * create a Test Pilot experiment jar that loads your addon (using `study_base_classes`).
 * make the addon self destructing, using a Fuse and `addonManager`.
@@ -386,12 +390,12 @@ Use With Existing Test Pilot 1?
 
 ```
 
-Event Entry Order is Wrong / Some got lost
+### Event Entry Order is Wrong / Some got lost
 
 * Events are written asynchronously.  Order is not guaranteed.
 * During catastrophic Firefox crash, some events may not be written.
 
-I want to persist other aspects / attributes of the study across restarts
+### I want to persist other aspects / attributes of the study across restarts
 
 * `micropilot('mystudy')._config.YOURKEY // persists in addon`
 * use `simple-storage` directly
@@ -399,7 +403,7 @@ I want to persist other aspects / attributes of the study across restarts
 * Make an IndexedDb or Sqlite db
 * write a file to the profile
 
-I Want a Pony
+### I Want a Pony
 
 * Ponies are scheduled for Version 2.
 * You can't have a pony, since this is JavaScript and not Python.
@@ -415,7 +419,7 @@ Glossary
 * `observe` / `notify`:  Global `observerService` terms.
 * `watch` / `unwatch`:  `Micropilot` listens to `observer` for `topics`, (fancifies them)[https://github.com/gregglind/micropilot/issues/5]
 * `record`: attempt to write data (undecorated, as is!) to the `IndexedDb`
-* `event`:  in Micropilot, any `JSON.stringify`-able object.  Used broadly for "a thing of human interest that happened", not in the strict JS sense.
+* `event`:  in Micropilot, any `JSON.stringify`-able `Object`.  Used broadly for "a thing of human interest that happened", not in the strict JS sense.
 
 Other Gory Details and Sharp Edges:
 -------------------------------------
@@ -426,6 +430,7 @@ Authors
 ----------
 
 Gregg Lind <glind@mozilla.com>
+
 
 License
 ----------
