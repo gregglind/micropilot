@@ -326,7 +326,7 @@ FAQ
 
 ### I don't want to actually record / I want to do something else on observation.
 
-* `yourstudy._watchfn = function(topic,subject){}` before any registration / start / lifetime.
+* `yourstudy._watchfn = function(topic,subject,data){}` before any registration / start / lifetime.
 * (note:  you can't just replace `watch` because it's a `heritage` frozen object key)
 
 ### How can I notify people on start / stop / comletion / upload?

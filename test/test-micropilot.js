@@ -49,15 +49,16 @@ exports['test empty unwatch clears all topics'] = function(assert){
 
 exports['test watch a channel has annotated data (replaced _watchfn)'] = function(assert,done){
   let mtp = Micropilot(uu());
-  mtp._watchfn = function(topic,subject){
+  mtp._watchfn = function(topic,subject,data){
     mtp.unwatch();
     mtp.stop();
     assert.ok(topic == 'kitten');
     assert.ok(subject == 1);
+    assert.ok(data == "a");
     done();
   };
   mtp.watch(['kitten']).start()
-  observer.notify('kitten',1);
+  observer.notify('kitten',1,"a");
 };
 
 exports['test watch a channel has annotated data'] = function(assert,done){
@@ -68,7 +69,7 @@ exports['test watch a channel has annotated data'] = function(assert,done){
   mtp.data().then(function(data){
     let d = data[0];
     assert.ok(d.msg == "kitten")
-    assert.ok(d.data == 1);
+    assert.ok(d.subject == 1);
     assert.ok(d.ts > 0);
     done();
   })
@@ -76,7 +77,7 @@ exports['test watch a channel has annotated data'] = function(assert,done){
 
 exports['test mtp watches a channel (replaced _watchfn)'] = function(assert,done){
 	let mtp = Micropilot(uu());
-	mtp._watchfn = function(topic,subject){mtp.unwatch(); mtp.stop(); good(assert,done)()};
+	mtp._watchfn = function(topic,subject,data){mtp.unwatch(); mtp.stop(); good(assert,done)()};
 	mtp.watch(['kitten']).start()
 	observer.notify('kitten',{});
 };
