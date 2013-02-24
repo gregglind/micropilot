@@ -180,7 +180,7 @@
   * @name microlog
   */
 <span class="pass" data-count="1"><span class="count">1</span>let microlog = exports.microlog = function(){
-    <span class="pass" data-count="37"><span class="count">37</span>myprefs.micropilotlog  && console.log.call(null, arguments);
+    <span class="pass" data-count="37"><span class="count">37</span>myprefs.micropilotlog  && console.log.apply(null, arguments);
 </span>}
 
 
@@ -484,9 +484,9 @@
     <span class="pass" data-count="8"><span class="count">8</span>let that = this;
 </span>    <span class="pass" data-count="8"><span class="count">8</span>let cb;
 </span>    <span class="pass" data-count="8"><span class="count">8</span>if (this._watchfn !== undefined){
-      <span class="pass" data-count="5"><span class="count">5</span>cb = function(subject) that._watchfn.call(that,topic,subject);
+      <span class="pass" data-count="5"><span class="count">5</span>cb = function(subject,data) that._watchfn.call(that,topic,subject,data);
 </span>    } else {
-      <span class="pass" data-count="3"><span class="count">3</span>cb = function(subject) {<span class="pass" data-count="1"><span class="count">1</span>that.record({"msg":topic,ts:Date.now(),"data":subject})}</span>;
+      <span class="pass" data-count="3"><span class="count">3</span>cb = function(subject,data) {<span class="pass" data-count="1"><span class="count">1</span>that.record({"msg":topic,ts:Date.now(),"subject":subject,"data":data})}</span>;
 </span>    }
 </span>    <span class="pass" data-count="8"><span class="count">8</span>let o = observer.add(topic,cb); </span>// add to global watch list
     <span class="pass" data-count="8"><span class="count">8</span>this._watched[topic] = cb;
@@ -584,11 +584,14 @@
       <span class="pass" data-count="3"><span class="count">3</span>that._config.uploadcounter += 1;
 </span>
       <span class="pass" data-count="3"><span class="count">3</span>that.upload(url).then(function(response){
-        <span class="pass" data-count="3"><span class="count">3</span>if (! GOODSTATUS[response.status]) {  // try again in interval ms
-          <span class="pass" data-count="3"><span class="count">3</span>microlog("micropilot-response-bad:", response.status, "retrying in:", interval );
+        <span class="pass" data-count="3"><span class="count">3</span>let dump_response = function(response){
+          <span class="pass" data-count="3"><span class="count">3</span>return JSON.stringify({status: response.status, text: response.text})
+        }</span>
+        <span class="pass" data-count="3"><span class="count">3</span>i</span>f (! GOODSTATUS[response.status]) {  // try again in interval ms
+          <span class="pass" data-count="3"><span class="count">3</span>microlog("micropilot-ezupload-fail:", dump_response(response),"retrying in:", interval);
 </span>          <span class="pass" data-count="3"><span class="count">3</span>require('timers').setTimeout(function(){<span class="pass" data-count="3"><span class="count">3</span>myupload()}</span>, interval)
         }</span> else {
-          <span class="error" data-count="0"><span class="count">0</span>microlog("micropilot-ezupload-success")
+          <span class="error" data-count="0"><span class="count">0</span>microlog("micropilot-ezupload-success:",dump_response(response))
           <span class="error" data-count="0"><span class="count">0</span>m</span>ycleanup();
 </span>        }
 </span>      })
@@ -624,13 +627,12 @@
     <span class="pass" data-count="6"><span class="count">6</span>this.data().then(function(data){
       <span class="pass" data-count="6"><span class="count">6</span>microlog("micropilot-willupload-data:", JSON.stringify(data));
 </span>      <span class="pass" data-count="6"><span class="count">6</span>let payload = {events:data};
-</span>      <span class="pass" data-count="6"><span class="count">6</span>payload.userdata = snoop();
 </span>      <span class="pass" data-count="6"><span class="count">6</span>payload.ts = Date.now();
 </span>      <span class="pass" data-count="6"><span class="count">6</span>payload.uploadid = uploadid;
 </span>      <span class="pass" data-count="6"><span class="count">6</span>payload.personid = that._config.personid;
 </span>      <span class="pass" data-count="6"><span class="count">6</span>snoop().then(function(userdata){
-        <span class="pass" data-count="6"><span class="count">6</span>microlog("micropilot-willupload-content:", JSON.stringify(payload));
-</span>        <span class="pass" data-count="6"><span class="count">6</span>payload.userdata = userdata;
+        <span class="pass" data-count="6"><span class="count">6</span>payload.userdata = userdata;
+</span>        <span class="pass" data-count="6"><span class="count">6</span>microlog("micropilot-willupload-content:", JSON.stringify(payload));
 </span>        <span class="pass" data-count="6"><span class="count">6</span>let R = Request({
           url: url,
           headers: {
@@ -663,32 +665,32 @@
   * @memberOf main
   */
 <span class="pass" data-count="1"><span class="count">1</span>let snoop = exports.snoop = function(){
-  <span class="pass" data-count="13"><span class="count">13</span>let { promise, resolve } = defer();
-</span>  <span class="pass" data-count="13"><span class="count">13</span>let LOCALE_PREF = "general.useragent.locale";
-</span>  <span class="pass" data-count="13"><span class="count">13</span>let UPDATE_CHANNEL_PREF = "app.update.channel";
-</span>  <span class="pass" data-count="13"><span class="count">13</span>let xa = require("xul-app");
-</span>  <span class="pass" data-count="13"><span class="count">13</span>let prefs = require('preferences-service');
+  <span class="pass" data-count="7"><span class="count">7</span>let { promise, resolve } = defer();
+</span>  <span class="pass" data-count="7"><span class="count">7</span>let LOCALE_PREF = "general.useragent.locale";
+</span>  <span class="pass" data-count="7"><span class="count">7</span>let UPDATE_CHANNEL_PREF = "app.update.channel";
+</span>  <span class="pass" data-count="7"><span class="count">7</span>let xa = require("xul-app");
+</span>  <span class="pass" data-count="7"><span class="count">7</span>let prefs = require('preferences-service');
 </span>
-  <span class="pass" data-count="13"><span class="count">13</span>let u = {};
-</span>  <span class="pass" data-count="13"><span class="count">13</span>u.appname = xa.name;
-</span>  <span class="pass" data-count="13"><span class="count">13</span>u.location = prefs.get(LOCALE_PREF)
-  <span class="pass" data-count="13"><span class="count">13</span>u</span>.fxVersion = xa.version;
-</span>  <span class="pass" data-count="13"><span class="count">13</span>u.os = require('runtime').os;
-</span>  <span class="pass" data-count="13"><span class="count">13</span>u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
+  <span class="pass" data-count="7"><span class="count">7</span>let u = {};
+</span>  <span class="pass" data-count="7"><span class="count">7</span>u.appname = xa.name;
+</span>  <span class="pass" data-count="7"><span class="count">7</span>u.location = prefs.get(LOCALE_PREF)
+  <span class="pass" data-count="7"><span class="count">7</span>u</span>.fxVersion = xa.version;
+</span>  <span class="pass" data-count="7"><span class="count">7</span>u.os = require('runtime').os;
+</span>  <span class="pass" data-count="7"><span class="count">7</span>u.updateChannel = prefs.get(UPDATE_CHANNEL_PREF)
 
-  <span class="pass" data-count="13"><span class="count">13</span>l</span>et { AddonManager } = Cu.import("resource://gre/modules/AddonManager.jsm");
-</span>  <span class="pass" data-count="13"><span class="count">13</span>u.addons = [];
-</span>  <span class="pass" data-count="13"><span class="count">13</span>AddonManager.getAllAddons(function(addonList){
-    <span class="pass" data-count="13"><span class="count">13</span>Array.forEach(addonList,function(a){
-      <span class="pass" data-count="104"><span class="count">104</span>let o = {};
-</span>      <span class="pass" data-count="104"><span class="count">104</span>['id','name','appDisabled','isActive','type','userDisabled'].forEach(function(k){
-        <span class="pass" data-count="624"><span class="count">624</span>o[k] = a[k]
+  <span class="pass" data-count="7"><span class="count">7</span>l</span>et { AddonManager } = Cu.import("resource://gre/modules/AddonManager.jsm");
+</span>  <span class="pass" data-count="7"><span class="count">7</span>u.addons = [];
+</span>  <span class="pass" data-count="7"><span class="count">7</span>AddonManager.getAllAddons(function(addonList){
+    <span class="pass" data-count="7"><span class="count">7</span>Array.forEach(addonList,function(a){
+      <span class="pass" data-count="56"><span class="count">56</span>let o = {};
+</span>      <span class="pass" data-count="56"><span class="count">56</span>['id','name','appDisabled','isActive','type','userDisabled'].forEach(function(k){
+        <span class="pass" data-count="336"><span class="count">336</span>o[k] = a[k]
       }</span>)
-      <span class="pass" data-count="104"><span class="count">104</span>u</span>.addons.push(o);
+      <span class="pass" data-count="56"><span class="count">56</span>u</span>.addons.push(o);
 </span>    })
-    <span class="pass" data-count="13"><span class="count">13</span>r</span>esolve(u);
+    <span class="pass" data-count="7"><span class="count">7</span>r</span>esolve(u);
 </span>  })
-  <span class="pass" data-count="13"><span class="count">13</span>r</span>eturn promise;
+  <span class="pass" data-count="7"><span class="count">7</span>r</span>eturn promise;
 </span>}
 
 /** Fuse Heritage Class
@@ -770,12 +772,12 @@
       <span class="pass" data-count="6"><span class="count">6</span>that.checking=false;
 </span>      <span class="pass" data-count="6"><span class="count">6</span>let timerunningsofar = (Date.now() - this.start);
 </span>      <span class="pass" data-count="6"><span class="count">6</span>if (duration <= timerunningsofar) { // really short intervals
-        <span class="pass" data-count="1"><span class="count">1</span>that.resolve(resolve_this);
-</span>        <span class="pass" data-count="1"><span class="count">1</span>this.stop();
+        <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
+</span>        <span class="pass" data-count="2"><span class="count">2</span>this.stop();
 </span>      } else {
-        <span class="pass" data-count="5"><span class="count">5</span>this.timerid = timers.setTimeout(function(){
-          <span class="pass" data-count="3"><span class="count">3</span>that.resolve(resolve_this);
-</span>          <span class="pass" data-count="3"><span class="count">3</span>that.stop();
+        <span class="pass" data-count="4"><span class="count">4</span>this.timerid = timers.setTimeout(function(){
+          <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
+</span>          <span class="pass" data-count="2"><span class="count">2</span>that.stop();
 </span>        }, duration - timerunningsofar);
 </span>      }
 </span>    }
@@ -797,7 +799,7 @@
     */
   stop: function(){
     <span class="pass" data-count="8"><span class="count">8</span>if (this.timerid) {
-      <span class="pass" data-count="7"><span class="count">7</span>timers.clearTimeout(this.timerid);
+      <span class="pass" data-count="6"><span class="count">6</span>timers.clearTimeout(this.timerid);
 </span>    }
 </span>    <span class="pass" data-count="8"><span class="count">8</span>return this;
 </span>  }
