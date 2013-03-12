@@ -10,7 +10,7 @@ const { defer, promised, resolve } = require('api-utils/promise');
 const observer = require("observer-service");
 const { good, bad, jsondump, uu } = require("./utils");
 let { Micropilot,Fuse,EventStore,snoop, killaddon } = require('micropilot');
-
+let { storage } = require("sdk/simple-storage");
 
 
 /* EventStore */
@@ -39,6 +39,13 @@ exports['test EventStore clear works even on non-existent db'] = function(assert
 
 /* micropilot */
 
+exports['test micropilot init persists to simple store'] = function(assert){
+  let k = uu();
+  let mtp = Micropilot(k);
+  assert.ok(storage.micropilot, "init, storage micrpilot key exists");
+  assert.ok(storage.micropilot[k].personid, "init, storage study personid exists");
+  assert.ok(storage.micropilot[k].startdate > 0, "init, storage study startdate set");
+}
 
 exports['test empty unwatch clears all topics'] = function(assert){
 	let mtp = Micropilot(uu()).watch(['a','b']);
@@ -111,6 +118,15 @@ exports['test set startdate kills fuse'] = function(assert){
   assert.ok(mtp.fuse === undefined)
   assert.ok(mtp.willrecord == false)
   assert.ok(mtp.startdate == fakedate)
+}
+
+exports['test set startdate persists to storage'] = function(assert){
+  let k = uu();
+  let mtp = Micropilot(k);
+  let fakedate = 100000;
+  mtp.startdate = fakedate;
+  assert.equal(mtp.startdate, fakedate);
+  assert.equal(storage.micropilot[k].startdate, fakedate, "new startdate peristed")
 }
 
 exports['test set startdate then run fuse use the startdate'] = function(assert){

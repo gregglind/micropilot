@@ -1,0 +1,10 @@
+{
+  "name": "persist",
+  "fullName": "persist",
+  "id": "persist-addon@mozilla.com",
+  "description": "sample-micropilot persistent study",
+  "author": "Gregg Lind <glind@mozilla.com>",
+  "main":  "persist",
+  "license": "MPL 2.0",
+  "version": "0.1"
+}

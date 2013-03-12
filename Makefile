@@ -40,8 +40,12 @@ fixtures-self-destruct:
 	cd test/fixtures/self-destruct &&\
 	cfx xpi --package-path ../../.. --
 
+fixtures-persist:
+	cd $(TOP) &&\
+	cd test/fixtures/persist &&\
+	cfx xpi --package-path ../../.. --
 
-.phony fixtures: fixtures-self-destruct
+.phony fixtures: fixtures-self-destruct fixtures-persist
 
 cover:  fixtures
 	cd $(TOP) &&\
