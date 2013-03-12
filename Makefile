@@ -16,6 +16,7 @@ define HELPDOC
               options:
                 OPTS="-v -f test-"        (options for cfx text)
                 FOX=Aurora, "", 17, etc.  (osx bundle name)
+  testmobile - same as test, but for mobile (android), FOX disallowed
   cover     - create `fakey` dir with covered files.
   docs      - create coverage and api docs, place in `gh-pages`
   version   - print micropilot version (according to `package.json`)
