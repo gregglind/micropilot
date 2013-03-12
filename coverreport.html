@@ -9,7 +9,7 @@
 	.pass .count { background: #BFFFBF;}	.error .count { background: #F8D5D8; color: red}</style>
 </head>
 <body>
-<h1>lib/micropilot.js (93%)</h1>
+<h1>lib/micropilot.js (97%)</h1>
 
 <pre>/*! vim:set ts=2 sw=2 sts=2 expandtab */
 /*! This Source Code Form is subject to the terms of the Mozilla Public
@@ -73,29 +73,6 @@
   }
 };
 </span>
-/** Return first-successful reqiured module from a list of paths
- *
- * @return {object} required module
- *
- * @param {Array} paths strings of module paths to try
- * @param {string} msg throw message on failure of all paths (default: "No such module")
- *
- * @memberOf main
- * @name requireAny
- */
-<span class="pass" data-count="1"><span class="count">1</span>function requireAny(paths,msg) {
-  <span class="error" data-count="0"><span class="count">0</span>msg = msg ||  "No such module";
-</span>  // path of paths
-  <span class="error" data-count="0"><span class="count">0</span>for (let i = 0, ii = paths.length; i < ii; i++) {
-    <span class="error" data-count="0"><span class="count">0</span>try {
-      <span class="error" data-count="0"><span class="count">0</span>return require(paths[i]);
-</span>    } catch (e) {
-      <span class="error" data-count="0"><span class="count">0</span>console.log(e);
-</span>    }
-</span>  } </span><span class="error" data-count="0"><span class="count">0</span>throw msg;
-</span>}<span class="pass" data-count="1"><span class="count">1</span>;</span>
-</span>
-
 /*! this gets them into the xpi tarball, if they are present
   Don't use the comment/regex trick because comments don't go
   through to covered code :/
@@ -134,7 +111,7 @@
  * @name uu
  */
 <span class="pass" data-count="1"><span class="count">1</span>let uu = exports.uu = function(){
-        <span class="pass" data-count="22"><span class="count">22</span>return uuid().number.slice(1,-1)
+        <span class="pass" data-count="26"><span class="count">26</span>return uuid().number.slice(1,-1)
 }</span>;
 </span>
 
@@ -180,7 +157,7 @@
   * @name microlog
   */
 <span class="pass" data-count="1"><span class="count">1</span>let microlog = exports.microlog = function(){
-    <span class="pass" data-count="37"><span class="count">37</span>myprefs.micropilotlog  && console.log.apply(null, arguments);
+    <span class="pass" data-count="38"><span class="count">38</span>myprefs.micropilotlog  && console.log.apply(null, arguments);
 </span>}
 
 
@@ -201,8 +178,8 @@
     * @name initialize
     */
   initialize: function(collection,keyname){
-    <span class="pass" data-count="19"><span class="count">19</span>this.collection = collection;
-</span>    <span class="pass" data-count="19"><span class="count">19</span>this.keyname = keyname || "eventstoreid";
+    <span class="pass" data-count="23"><span class="count">23</span>this.collection = collection;
+</span>    <span class="pass" data-count="23"><span class="count">23</span>this.keyname = keyname || "eventstoreid";
 </span>  },
   type: "EventStore",
   /** promise a indexedDB connection to `"micropilot-"+this.collection`.
@@ -346,16 +323,18 @@
     */
   initialize: function(studyid){
       // setup the indexdb
-      <span class="pass" data-count="16"><span class="count">16</span>this.studyid = studyid;
-</span>      <span class="pass" data-count="16"><span class="count">16</span>this._watched = {};
-</span>      <span class="pass" data-count="16"><span class="count">16</span>this.eventstore = EventStore(this.studyid);
-</span>      <span class="pass" data-count="16"><span class="count">16</span>this._config = storage.micropilot[studyid]; </span>// persists
-      <span class="pass" data-count="16"><span class="count">16</span>if (this._config === undefined) {
-        <span class="pass" data-count="16"><span class="count">16</span>this._config = {};
-</span>        <span class="pass" data-count="16"><span class="count">16</span>this._config.personid = uu();
-</span>      }
-</span>      <span class="pass" data-count="16"><span class="count">16</span>this._startdate = this._config.startdate = Date.now(); </span>// start now
-      <span class="pass" data-count="16"><span class="count">16</span>this.willrecord = false; </span>// won't record.
+      <span class="pass" data-count="20"><span class="count">20</span>this.studyid = studyid;
+</span>      <span class="pass" data-count="20"><span class="count">20</span>this._watched = {};
+</span>      <span class="pass" data-count="20"><span class="count">20</span>this.eventstore = EventStore(this.studyid);
+</span>      <span class="pass" data-count="20"><span class="count">20</span>if (storage.micropilot[studyid] === undefined) {
+        <span class="pass" data-count="20"><span class="count">20</span>storage.micropilot[studyid] = {
+          personid: uu(),
+          startdate:  Date.now()  // start now
+        }
+      }</span>
+</span>      <span class="pass" data-count="20"><span class="count">20</span>this._config = storage.micropilot[studyid]; </span>// persists
+      <span class="pass" data-count="20"><span class="count">20</span>this._startdate = this._config.startdate;
+</span>      <span class="pass" data-count="20"><span class="count">20</span>this.willrecord = false; </span>// won't record.
   },
   type: 'Micropilot',
 
@@ -368,8 +347,8 @@
   get startdate() this._startdate,
   // resetting the startdate kills existing lifetime / fuse
   set startdate(ts) {
-    <span class="pass" data-count="2"><span class="count">2</span>this.stop();
-</span>    <span class="pass" data-count="2"><span class="count">2</span>this._startdate = ts;
+    <span class="pass" data-count="3"><span class="count">3</span>this.stop();
+</span>    <span class="pass" data-count="3"><span class="count">3</span>this._startdate = this._config.startdate = ts;
 </span>  },
   /** promise of all recorded event data
     *
@@ -429,20 +408,20 @@
     *
     */
   lifetime:  function(duration){
-    <span class="pass" data-count="4"><span class="count">4</span>this.stop();
-</span>    <span class="pass" data-count="4"><span class="count">4</span>this.willrecord = true; </span>// restart!
-    <span class="pass" data-count="4"><span class="count">4</span>let deferred = defer();
-</span>    <span class="pass" data-count="4"><span class="count">4</span>let that = this;
+    <span class="pass" data-count="6"><span class="count">6</span>this.stop();
+</span>    <span class="pass" data-count="6"><span class="count">6</span>this.willrecord = true; </span>// restart!
+    <span class="pass" data-count="6"><span class="count">6</span>let deferred = defer();
+</span>    <span class="pass" data-count="6"><span class="count">6</span>let that = this;
+</span>    <span class="pass" data-count="6"><span class="count">6</span>this.start();
 </span>    // iff!
-    <span class="pass" data-count="4"><span class="count">4</span>if (duration){
+    <span class="pass" data-count="6"><span class="count">6</span>if (duration){
       // should this allow / mix all fuse options?
       <span class="pass" data-count="4"><span class="count">4</span>this.fuse = Fuse({start: this.startdate,duration:duration, resolve_this: that});
 </span>      <span class="pass" data-count="4"><span class="count">4</span>return this.fuse;
 </span>    } else {
       // no duration, so infinite, so nothing to resolve.
-    }
-</span>    <span class="error" data-count="0"><span class="count">0</span>this.start();
-</span>    <span class="error" data-count="0"><span class="count">0</span>return deferred.promise;
+      <span class="pass" data-count="2"><span class="count">2</span>return deferred.promise;
+</span>    }
 </span>  },
 
   /** allow record (`this.willrecord` -> `true`)
@@ -452,8 +431,8 @@
     * @name start
     */
   start:  function(){
-    <span class="pass" data-count="5"><span class="count">5</span>this.willrecord = true;
-</span>    <span class="pass" data-count="5"><span class="count">5</span>return this;
+    <span class="pass" data-count="11"><span class="count">11</span>this.willrecord = true;
+</span>    <span class="pass" data-count="11"><span class="count">11</span>return this;
 </span>  },
   /** stop the study (unset the fuse, `this.willrecord` -> `false`)
     *
@@ -465,10 +444,10 @@
     * @name stop
     */
   stop:  function(){
-    <span class="pass" data-count="10"><span class="count">10</span>this.willrecord = false;
-</span>    <span class="pass" data-count="10"><span class="count">10</span>this.fuse !== undefined && this.fuse.stop();
-</span>    <span class="pass" data-count="10"><span class="count">10</span>delete this.fuse;
-</span>    <span class="pass" data-count="10"><span class="count">10</span>return this;
+    <span class="pass" data-count="14"><span class="count">14</span>this.willrecord = false;
+</span>    <span class="pass" data-count="14"><span class="count">14</span>this.fuse !== undefined && this.fuse.stop();
+</span>    <span class="pass" data-count="14"><span class="count">14</span>delete this.fuse;
+</span>    <span class="pass" data-count="14"><span class="count">14</span>return this;
 </span>  },
 
   /** (internal) watch a topic, add to `observer-service`
@@ -682,11 +661,11 @@
 </span>  <span class="pass" data-count="7"><span class="count">7</span>u.addons = [];
 </span>  <span class="pass" data-count="7"><span class="count">7</span>AddonManager.getAllAddons(function(addonList){
     <span class="pass" data-count="7"><span class="count">7</span>Array.forEach(addonList,function(a){
-      <span class="pass" data-count="56"><span class="count">56</span>let o = {};
-</span>      <span class="pass" data-count="56"><span class="count">56</span>['id','name','appDisabled','isActive','type','userDisabled'].forEach(function(k){
-        <span class="pass" data-count="336"><span class="count">336</span>o[k] = a[k]
+      <span class="pass" data-count="63"><span class="count">63</span>let o = {};
+</span>      <span class="pass" data-count="63"><span class="count">63</span>['id','name','appDisabled','isActive','type','userDisabled'].forEach(function(k){
+        <span class="pass" data-count="378"><span class="count">378</span>o[k] = a[k]
       }</span>)
-      <span class="pass" data-count="56"><span class="count">56</span>u</span>.addons.push(o);
+      <span class="pass" data-count="63"><span class="count">63</span>u</span>.addons.push(o);
 </span>    })
     <span class="pass" data-count="7"><span class="count">7</span>r</span>esolve(u);
 </span>  })
@@ -742,18 +721,18 @@
     * @name initialize
     */
   initialize: function(options){
-    <span class="pass" data-count="8"><span class="count">8</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>this.pulseinterval =  pulseinterval;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>let that = this;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>this.start = start;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>this.duration = duration;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>let { promise, resolve } = defer();
-</span>    <span class="pass" data-count="8"><span class="count">8</span>this.promise = promise;
-</span>    <span class="pass" data-count="8"><span class="count">8</span>this.resolve = resolve;
+    <span class="pass" data-count="9"><span class="count">9</span>let {start,duration,pulseinterval,resolve_this,pulsefn} = options;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.pulseinterval =  pulseinterval;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>let that = this;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.start = start;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.duration = duration;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>let { promise, resolve } = defer();
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.promise = promise;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>this.resolve = resolve;
 </span>    // should this be setInterval, or setTimeout?
     // setInterval allows one to modify the fuse while running
     // more easily, but setTimeout is much more precise.
-    <span class="pass" data-count="8"><span class="count">8</span>if (pulseinterval){
+    <span class="pass" data-count="9"><span class="count">9</span>if (pulseinterval){
       <span class="pass" data-count="2"><span class="count">2</span>this.timerid = timers.setInterval(function(){
         <span class="pass" data-count="12"><span class="count">12</span>if (that.checking) {
           <span class="error" data-count="0"><span class="count">0</span>return; </span> // prevent races
@@ -769,15 +748,15 @@
 </span>      },pulseinterval);
 </span>    } else {
       // TODO, what is setTimeout on a negative?
-      <span class="pass" data-count="6"><span class="count">6</span>that.checking=false;
-</span>      <span class="pass" data-count="6"><span class="count">6</span>let timerunningsofar = (Date.now() - this.start);
-</span>      <span class="pass" data-count="6"><span class="count">6</span>if (duration <= timerunningsofar) { // really short intervals
-        <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
-</span>        <span class="pass" data-count="2"><span class="count">2</span>this.stop();
+      <span class="pass" data-count="7"><span class="count">7</span>that.checking=false;
+</span>      <span class="pass" data-count="7"><span class="count">7</span>let timerunningsofar = (Date.now() - this.start);
+</span>      <span class="pass" data-count="7"><span class="count">7</span>if (duration <= timerunningsofar) { // really short intervals
+        <span class="pass" data-count="1"><span class="count">1</span>that.resolve(resolve_this);
+</span>        <span class="pass" data-count="1"><span class="count">1</span>this.stop();
 </span>      } else {
-        <span class="pass" data-count="4"><span class="count">4</span>this.timerid = timers.setTimeout(function(){
-          <span class="pass" data-count="2"><span class="count">2</span>that.resolve(resolve_this);
-</span>          <span class="pass" data-count="2"><span class="count">2</span>that.stop();
+        <span class="pass" data-count="6"><span class="count">6</span>this.timerid = timers.setTimeout(function(){
+          <span class="pass" data-count="4"><span class="count">4</span>that.resolve(resolve_this);
+</span>          <span class="pass" data-count="4"><span class="count">4</span>that.stop();
 </span>        }, duration - timerunningsofar);
 </span>      }
 </span>    }
@@ -798,23 +777,25 @@
     * @name stop
     */
   stop: function(){
-    <span class="pass" data-count="8"><span class="count">8</span>if (this.timerid) {
-      <span class="pass" data-count="6"><span class="count">6</span>timers.clearTimeout(this.timerid);
+    <span class="pass" data-count="9"><span class="count">9</span>if (this.timerid) {
+      <span class="pass" data-count="8"><span class="count">8</span>timers.clearTimeout(this.timerid);
 </span>    }
-</span>    <span class="pass" data-count="8"><span class="count">8</span>return this;
+</span>    <span class="pass" data-count="9"><span class="count">9</span>return this;
 </span>  }
 });
 </span>
 
 /** Self-destruct (uninstall) this addon
   *
+  * @param {string} id addon id
+  * @return promise (sdk/adddon/installer).uninstall
   * @memberOf main
   * @name killaddon
   */
-<span class="pass" data-count="1"><span class="count">1</span>let killaddon = exports.killaddon = function(){
-  <span class="error" data-count="0"><span class="count">0</span>let id = require('self').id;
-</span>  <span class="error" data-count="0"><span class="count">0</span>microlog("attempting to remove addon:", id);
-</span>  <span class="error" data-count="0"><span class="count">0</span>require("sdk/addon/installer").uninstall(id);
+<span class="pass" data-count="1"><span class="count">1</span>let killaddon = exports.killaddon = function(id){
+  <span class="pass" data-count="1"><span class="count">1</span>id = id === undefined ? require('self').id : id;
+</span>  <span class="pass" data-count="1"><span class="count">1</span>microlog("attempting to remove addon:", id);
+</span>  <span class="pass" data-count="1"><span class="count">1</span>return require("sdk/addon/installer").uninstall(id);
 </span>}
 </pre><h1>lib/indexed-db-17.js (91%)</h1>
 
