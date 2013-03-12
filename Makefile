@@ -19,6 +19,7 @@ define HELPDOC
   cover     - create `fakey` dir with covered files.
   docs      - create coverage and api docs, place in `gh-pages`
   version   - print micropilot version (according to `package.json`)
+  fixtures  - builds xpis for testing
   help      - this help.
 
 
@@ -33,8 +34,15 @@ version:
 help:
 	@echo "$$HELPDOC"
 
+fixtures-self-destruct:
+	cd $(TOP) &&\
+	cd test/fixtures/self-destruct &&\
+	cfx xpi --package-path ../../.. --
 
-cover:
+
+.phony fixtures: fixtures-self-destruct
+
+cover:  fixtures
 	cd $(TOP) &&\
 	rm -rf fakey &&\
 	mkdir -p fakey/lib && cp -r data doc test package.json fakey &&\

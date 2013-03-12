@@ -1,0 +1,10 @@
+{
+  "name": "self-destruct",
+  "fullName": "self-destruct",
+  "id": "self-destruct-addon@mozilla.com",
+  "description": "self destructing addon for tests",
+  "author": "Gregg Lind <glind@mozilla.com>",
+  "main":  "selfdestruct",
+  "license": "MPL 2.0",
+  "version": "0.1"
+}
