@@ -242,6 +242,24 @@ exports['test lifetime resolves with the study'] = function(assert,done){
   });  // light the fuse.
 }
 
+
+exports['test lifetime with falsy duration starts a stopped study'] = function(assert){
+  let mtp = Micropilot(uu());
+  mtp.stop();
+  assert.ok(!mtp.willrecord, "willrecord off");
+  mtp.lifetime();
+  assert.ok(mtp.willrecord, "willrecord on by setting lifetime");
+}
+
+exports['test lifetime with falsy duration starts never resolves'] = function(assert,done){
+  assert.pass();
+  Micropilot(uu()).lifetime().then(function(){
+    assert.fail("lifetime falsy duration should never resolve");
+    done();
+  });
+  Fuse({duration:5*1000}).then(done); // wait 5 sec, and see.
+}
+
 /* snoop */
 
 exports['test snoop does something'] = function(assert,done){
