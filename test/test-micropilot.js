@@ -82,6 +82,50 @@ exports['test watch a channel has annotated data'] = function(assert,done){
   })
 };
 
+
+exports['test watch interprets json if possible'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  observer.notify('mtp-'+k,JSON.stringify({"a":1}));
+  observer.notify('mtp-'+k,JSON.stringify({"b":1}),JSON.stringify({"c":1}));
+  observer.notify('mtp-'+k,{test3:1},JSON.stringify({"c":1}));
+
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    data.forEach(function(d){
+      ['subject','data'].forEach(function(k){
+        let t = typeof d[k];
+        assert.ok(['object','undefined'].indexOf(t) >= 0, "interpet json string correctly")
+      })
+    })
+    //jsondump(data);
+    done();
+  })
+};
+
+
+exports['test watch survives malformed json'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  observer.notify('mtp-'+k,JSON.stringify({"b":1}).slice(2),JSON.stringify({"c":1}).slice(2));
+
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    data.forEach(function(d){
+      ['subject','data'].forEach(function(k){
+        let t = typeof d[k];
+        assert.ok(['string'].indexOf(t) >= 0, "interpet json string correctly")
+      })
+    })
+    //jsondump(data);
+    done();
+  })
+};
+
+
+
 exports['test mtp watches a channel (replaced _watchfn)'] = function(assert,done){
 	let mtp = Micropilot(uu());
 	mtp._watchfn = function(topic,subject,data){mtp.unwatch(); mtp.stop(); good(assert,done)()};
