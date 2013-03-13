@@ -61,4 +61,29 @@ exports['test upload'] = function(assert,done){
   })
 };
 
+
+exports['test ezupload succssful'] = function(assert,done){
+  // server setup.
+  let id = uu();
+  let port = 8901;
+  let srv = startServerAsync(port, basePath);
+  let content = id;
+  let basename = "upload"
+  prepareFile(basename, content);
+
+  let uploadurl = "http://localhost:" + port + "/" + basename;
+
+  let mtp = Micropilot(id)
+  let group = promised(Array);
+  group(mtp.record({abc:1}), mtp.record({abc:2})).then(function(){
+    mtp.ezupload({url:uploadurl}).then(function(cleanup){
+      assert.ok(mtp._config.completed == true, "ezupload success, completed true")
+      mtp.data().then(function(data){
+        assert.equal(data.length,0,"ezupload succuss, data is clear");
+        srv.stop(done);
+      })
+    })
+  })
+};
+
 require("test").run(exports);
