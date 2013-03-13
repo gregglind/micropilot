@@ -8,6 +8,7 @@
 
 const { defer, promised, resolve } = require('api-utils/promise');
 const observer = require("observer-service");
+const sysevents = require("sdk/system/events");
 const { good, bad, jsondump, uu } = require("./utils");
 let { Micropilot,Fuse,EventStore,snoop, killaddon } = require('micropilot');
 let { storage } = require("sdk/simple-storage");
@@ -75,12 +76,93 @@ exports['test watch a channel has annotated data'] = function(assert,done){
   mtp.unwatch();
   mtp.data().then(function(data){
     let d = data[0];
-    assert.ok(d.msg == "kitten")
-    assert.ok(d.subject == 1);
-    assert.ok(d.ts > 0);
+    assert.ok(d.msg == "kitten","msg is kitten")
+    assert.ok(d.subject == 1, "subject is 1");
+    assert.ok(d.ts > 0, "ts > 0");
     done();
   })
 };
+
+
+exports['test watch interprets json if possible'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  observer.notify('mtp-'+k,JSON.stringify({"a":1}));
+  observer.notify('mtp-'+k,JSON.stringify({"b":1}),JSON.stringify({"c":1}));
+  observer.notify('mtp-'+k,null,JSON.stringify({"c":1}));
+
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    data.forEach(function(d){
+      ['subject','data'].forEach(function(k){
+        let t = typeof d[k];
+        assert.ok(['object','undefined'].indexOf(t) >= 0, "interpet json string correctly")
+      })
+    })
+    done();
+  })
+};
+
+exports['test watch throws on badly toString serialized objects'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  sysevents.emit('mtp-'+k,{subject: "a",
+    data:{a:1}}); // will go as [object Object] and throw
+
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    assert.equal(data.length,0,"no valid objects")
+    done();
+  })
+};
+
+exports['test watch system events sdk'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  sysevents.emit('mtp-'+k,{subject:JSON.stringify({"a":1})});
+  sysevents.emit('mtp-'+k,{subject:JSON.stringify({"b":1}),
+    data:JSON.stringify({"c":1})});
+  sysevents.emit('mtp-'+k,{data:JSON.stringify({"c":1})});
+
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    data.forEach(function(d){
+      ['subject','data'].forEach(function(k){
+        let t = typeof d[k];
+        assert.ok(['object','undefined'].indexOf(t) >= 0, "interpet json string correctly")
+      })
+    })
+    done();
+  })
+};
+
+exports['test watch survives malformed json'] = function(assert,done){
+  let k = uu();
+  let mtp = Micropilot(k);
+  mtp.watch(['mtp-'+k]).start();
+  let mal = {
+    subject: JSON.stringify({"b":1}).slice(2),
+    data: JSON.stringify({"c":1}).slice(2)
+  };
+  observer.notify('mtp-'+k,mal.subject,mal.data);
+  mtp.unwatch();
+  mtp.data().then(function(data){
+    data.forEach(function(d){
+      ['subject','data'].forEach(function(k){
+        let t = typeof d[k];
+        assert.ok(['string'].indexOf(t) >= 0, "interpet malformed json string correctly (as string)")
+        assert.equal(d[k],mal[k],k + " is equal")
+      })
+    })
+    //jsondump(data);
+    done();
+  })
+};
+
+
 
 exports['test mtp watches a channel (replaced _watchfn)'] = function(assert,done){
 	let mtp = Micropilot(uu());
