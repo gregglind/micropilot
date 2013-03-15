@@ -1,0 +1,10 @@
+{
+  "name": "quitter",
+  "fullName": "quitter",
+  "id": "quitter@gregglind.mozilla.com",
+  "description": "quits fx",
+  "author": "Gregg Lind <glind@mozilla.com>",
+  "license": "MPL 2.0",
+  "version": "0.1",
+  "main":  "quit"
+}
