@@ -55,9 +55,9 @@ exports['test upload'] = function(assert,done){
   let group = promised(Array);
   group(mtp.record({abc:1}), mtp.record({abc:2})).then(function(){
     mtp.upload(uploadurl).then(function(response){
-    	assert.ok(response.text == id);
-    	srv.stop(done);
-  	})
+	assert.ok(response.text == id);
+	srv.stop(done);
+	})
   })
 };
 

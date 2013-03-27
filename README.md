@@ -326,7 +326,7 @@ FAQ
 
 ### I don't want to actually record / I want to do something else on observation.
 
-* `yourstudy._watchfn = function(topic,subject,data){}` before any registration / start / lifetime.
+* `yourstudy._watchfn = function(evt){}` before any registration / start / lifetime.
 * (note:  you can't just replace `watch` because it's a `heritage` frozen object key)
 
 ### How can I notify people on start / stop / comletion / upload?
@@ -416,6 +416,7 @@ Glossary
   - [Addon-sdk observer-service]https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/deprecated/observer-service.html
   - [nsIObserverService]https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIObserverService
   - [Partial List of Firefox Global Topics]https://developer.mozilla.org/en-US/docs/Observer_Notifications
+  - the SDK calls these `types`, see [system/events](https://addons.mozilla.org/en-US/developers/docs/sdk/latest/modules/sdk/system/events.html)
 * `observe` / `notify`:  Global `observerService` terms.
 * `watch` / `unwatch`:  `Micropilot` listens to `observer` for `topics`, (fancifies them)[https://github.com/gregglind/micropilot/issues/5]
 * `record`: attempt to write data (undecorated, as is!) to the `IndexedDb`
