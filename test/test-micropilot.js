@@ -396,6 +396,31 @@ exports['test killaddon, does'] = function(assert){
   assert.pass()
 }
 
+exports['test clear empties the db'] = function(assert, done) {
+  let val = 1;
+  function checkRecordedDatum(datum) { assert.ok(datum.data.a === val, "checkRecordedDatum correct"); };
+  function assertData(data) { assert.ok(data[0].a === val, "value was recorded"); };
+  function assertNoData(data) { assert.ok(data.length === 0, "data length is 0, as expected"); };
+  let monitor = require("micropilot").Micropilot("clearForReuse").start();
+  monitor.record({a:val})
+    .then(checkRecordedDatum)
+    .then(function() { return monitor.data(); })
+    .then(assertData)
+    .then(function() { return monitor.clear(); })
+    .then(function() { return monitor.data(); })
+    .then(assertNoData)
+    .then(function() { console.log("setting"); val = 2; })
+    .then(function() { return monitor.record({a:val}); })
+    .then(checkRecordedDatum)
+    .then(function() { return monitor.data(); })
+    .then(assertData)
+    .then(function() { return monitor.clear(); })
+    .then(function() { return monitor.data(); })
+    .then(assertNoData)
+    .then(function() { assert.pass(); })
+    .then(done);
+}
+
 /*  integration test */
 
 exports['test full integration test'] = function(assert){
