@@ -14,6 +14,14 @@ let { Micropilot,Fuse,EventStore,snoop, killaddon } = require('micropilot');
 let { storage } = require("sdk/simple-storage");
 
 
+let pushn = function(store,n){
+  let adds = [];
+  for (let ii = 0; ii < n; ii++){
+    adds.push(store.add({"a":ii}));
+  }
+  return promised(Array).apply(null,adds)
+};
+
 /* EventStore */
 
 exports['test EventStore add getall'] = function(assert,done){
@@ -37,6 +45,61 @@ exports['test EventStore clear works even on non-existent db'] = function(assert
   let idb = EventStore(uu());
   idb.clear().then(good(assert,done))
 }
+
+
+exports['test EventStore deleteRange works'] = function(assert,done){
+  let idb = EventStore(uu());
+  let n = 100;
+  pushn(idb,100).then(function(){
+    return resolve(true)
+  }).then(function(){
+    return idb.getAll()
+  }).then(function(data){
+    assert.equal(data.length,n, "right data length");
+  }).then(
+    function() {
+      return idb.deleteRange(10,50)
+    },
+    function(err){
+      console.error(err)
+    }
+  ).then(function(){
+    return idb.getAll()
+  }).then(
+    function(data){
+      assert.equal(data.length, n - (50- 10 + 1),'after delete, right amount of data');
+      done()
+    }
+  )
+}
+
+
+exports['test EventStore deleteRange works - open ranges'] = function(assert,done){
+  let idb = EventStore(uu());
+  let n = 100;
+  pushn(idb,100).then(function(){
+    return resolve(true)
+  }).then(function(){
+    return idb.getAll()
+  }).then(function(data){
+    assert.equal(data.length,n, "right data length");
+  }).then(
+    function() {
+      return idb.deleteRange(10,50,true,true)
+    },
+    function(err){
+      console.error(err)
+    }
+  ).then(function(){
+    return idb.getAll()
+  }).then(
+    function(data){
+      assert.equal(data.length, n - (50- 10 - 1),'after delete, right amount of data');
+      done()
+    }
+  )
+}
+
 
 /* micropilot */
 
