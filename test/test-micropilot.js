@@ -396,6 +396,31 @@ exports['test killaddon, does'] = function(assert){
   assert.pass()
 }
 
+exports['test clearForReuse'] = function(assert, done) {
+  let val = 1;
+  function checkRecordData(d) { assert.ok(d.data.a == val); };
+  function checkData(d) { assert.ok(d[0].a == val); };
+  function checkNoData(d) { assert.ok(d.length == 0); };
+  let monitor = require("micropilot").Micropilot("clearForReuse").start();
+  monitor.record({a:val})
+    .then(checkRecordData)
+    .then(function() { return monitor.data(); })
+    .then(checkData)
+    .then(function() { return monitor.clearForReuse(); })
+    .then(function() { return monitor.data(); })
+    .then(checkNoData)
+    .then(function() { val = 2; })
+    .then(function() { return monitor.record({a:val}); })
+    .then(checkRecordData)
+    .then(function() { return monitor.data(); })
+    .then(checkData)
+    .then(function() { return monitor.clearForReuse(); })
+    .then(function() { return monitor.data(); })
+    .then(checkNoData)
+    .then(function() { assert.pass(); })
+    .then(done);
+}
+
 /*  integration test */
 
 exports['test full integration test'] = function(assert){
