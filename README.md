@@ -433,6 +433,10 @@ Authors
 Gregg Lind <glind@mozilla.com>
 Ilana Segall <isegall@mozilla.com>
 
+Contributors
+-------------
+
+David Keeler <dkeeler@mozilla.com>
 
 License
 ----------
